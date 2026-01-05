@@ -1,11 +1,11 @@
-import { LogOut, MessageCircle, BookOpen, ArrowLeft } from "react-feather";
+import { LogOut, MessageCircle, ArrowLeft } from "react-feather";
 import { useTranslation } from "react-i18next";
 import "./Header.css";
 
 export default function Header({
     onLogout,
-    onFeedback,
-    onAiKnowledge,
+    onAssistance,
+    // onAiKnowledge,
     onBack
 }) {
     const { t } = useTranslation();
@@ -27,25 +27,25 @@ export default function Header({
                         </button>
                     )}
 
-                    <div className="assistant-logo" onClick={onBack}>T</div>
+                    <div className="assistant-logo" onClick={onBack}>H</div>
                     <h2>{t("assistant.title")}</h2>
                 </div>
 
                 {/* Right: actions */}
                 <div className="assistant-actions">
 
-                    {/* {onFeedback && (
+                    {onAssistance && (
                         <button
                             className="assistant-action-btn"
-                            onClick={onFeedback}
+                            onClick={onAssistance}
                             aria-label="Feedback"
                         >
                             <MessageCircle size={18} />
-                            <span>Feedback</span>
+                            <span>Assistant</span>
                         </button>
-                    )} */}
+                    )}
 
-                    {onAiKnowledge && (
+                    {/* {onAiKnowledge && (
                         <button
                             className="assistant-action-btn"
                             onClick={onAiKnowledge}
@@ -54,7 +54,7 @@ export default function Header({
                             <BookOpen size={18} />
                             <span>AI Knowledge</span>
                         </button>
-                    )}
+                    )} */}
 
                     <button
                         className="assistant-logout"

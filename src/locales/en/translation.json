@@ -1,6 +1,6 @@
 {
   "login": {
-    "title": "Welcome to Thiago's AI Assistant",
+    "title": "Welcome to Ai 4 Signs",
     "emailPlaceholder": "your@email.com",
     "continue": "Continue →",
     "loading":"Loading...",
@@ -8,9 +8,9 @@
     "codePlaceholder": "XXXXXX"
   },
   "assistant": {
-    "title": "AI Assistant",
-    "welcome": "Hi! I’m Thiago’s AI Assistant. Ask me anything about his experience, projects, or skills.",
-    "placeholder": "Ask something about Thiago…",
+    "title": "Ai 4 Signs",
+    "welcome": "Hi! I’m your Ai assistant. Please, tell me more about your signage project.",
+    "placeholder": "Describe your project here...",
     "thinking": "Thinking…",
     "error": "Sorry, something went wrong. Please try again."
   }

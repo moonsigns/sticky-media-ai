@@ -1,7 +1,6 @@
 // src/pages/Assistant/Assistant.jsx
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import Header from "../../static/Header";
 import renderMarkdown from "../../utils/renderMarkdown";
 import { sendMessage } from "../../api/AssistantApi";
 
@@ -10,9 +9,6 @@ import "./Assistant.css";
 export default function Assistant({
   userId,
   email,
-  onLogout,
-  onAiKnowledge,
-  onFeedback
 }) {
   const { t, i18n } = useTranslation();
 
@@ -83,12 +79,6 @@ export default function Assistant({
 
   return (
     <div className="assistant-page">
-      {/* Header */}
-      <Header
-        onLogout={onLogout}
-        onFeedback={onFeedback}
-        onAiKnowledge={onAiKnowledge}
-      />
 
       {/* Chat */}
       <div className="assistant-chat">

@@ -17,7 +17,7 @@ export async function sendAccessCode(email) {
 }
 
 export async function checkAccess(email, accessCode) {
-  const res = await fetch(`${API_BASE_URL}check-access`, {
+  const res = await fetch(`${API_BASE_URL}check-login-access`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, accessCode })

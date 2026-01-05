@@ -96,7 +96,10 @@ export default function Login({ onLogin }) {
       {alert && <Alert type={alert.type} message={alert.message} />}
 
       <div className="login-card">
-        <h1>{t("login.title")}</h1>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <div className="assistant-logo">H</div>
+          <h1 style={{marginLeft:'12px', marginTop:'5px'}}>{t("login.title")}</h1>
+        </div>
 
         <input
           type="email"
