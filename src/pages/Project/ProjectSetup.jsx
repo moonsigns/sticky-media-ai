@@ -16,6 +16,7 @@ const STEPS = {
 
 export default function ProjectSetup({ onGenerate }) {
     const [step, setStep] = useState(STEPS.UPLOAD);
+    const [images, setImages] = useState([]);
 
     useEffect(() => {
         function syncFromHash() {
@@ -44,11 +45,16 @@ export default function ProjectSetup({ onGenerate }) {
     function renderStep() {
         switch (step) {
             case STEPS.UPLOAD:
-                return <PicturesUpload onNext={() => updateStep(STEPS.SETUP)} />;
+                return <PicturesUpload
+                    images={images}
+                    setImages={setImages}
+                    onNext={() => updateStep(STEPS.SETUP)}
+                />;
 
             case STEPS.SETUP:
                 return (
                     <PicturesSetup
+                        images={images}
                         onBack={() => updateStep(STEPS.UPLOAD)}
                         onNext={() => updateStep(STEPS.SIGN)}
                     />
