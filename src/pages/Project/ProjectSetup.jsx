@@ -17,6 +17,7 @@ const STEPS = {
 export default function ProjectSetup({ onGenerate }) {
     const [step, setStep] = useState(STEPS.UPLOAD);
     const [images, setImages] = useState([]);
+    const [signs, setSigns] = useState([]);
 
     useEffect(() => {
         function syncFromHash() {
@@ -56,15 +57,22 @@ export default function ProjectSetup({ onGenerate }) {
                     <PicturesSetup
                         images={images}
                         onBack={() => updateStep(STEPS.UPLOAD)}
-                        onNext={() => updateStep(STEPS.SIGN)}
+                        onNext={(generatedSigns) => {
+                            setSigns(generatedSigns);
+                            updateStep(STEPS.SIGN);
+                        }}
                     />
                 );
 
             case STEPS.SIGN:
                 return (
                     <SignType
+                        signs={signs}
                         onBack={() => updateStep(STEPS.SETUP)}
-                        onNext={() => updateStep(STEPS.DETAILS)}
+                        onNext={(updatedSigns) => {
+                            setSigns(updatedSigns);
+                            updateStep(STEPS.DETAILS);
+                        }}
                     />
                 );
 

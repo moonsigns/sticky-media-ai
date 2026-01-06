@@ -7,6 +7,7 @@
 .studio-header h2 {
   font-size: 26px;
   font-weight: 600;
+  margin-top: -40px;
 }
 
 .studio-header p {
@@ -22,11 +23,11 @@
 }
 
 .thumbs img {
-  width: 80px;
-  height: 50px;
+  width: 150px;
+  height: 90px;
   object-fit: cover;
   border-radius: 8px;
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: pointer;
   border: 2px solid transparent;
 }
@@ -47,26 +48,42 @@
   border-radius: 16px;
 }
 
-/* ===== SHAPES ===== */
 
+/* ===== SHAPES ===== */
 .area-shape {
   position: absolute;
-  border: 2px solid #d00;
-  background: rgba(220, 0, 0, 0.25);
   cursor: move;
+  z-index: 3;
 }
 
-.area-shape.rect,
+/* ===== SQUARE ===== */
 .area-shape.square {
+  border: 2px solid #d00;
+  background: rgba(220, 0, 0, 0.25);
   border-radius: 6px;
 }
 
+/* ===== CIRCLE ===== */
 .area-shape.circle {
+  border: 2px solid #d00;
+  background: rgba(220, 0, 0, 0.25);
   border-radius: 50%;
 }
 
-.area-shape.oval {
-  border-radius: 50% / 35%;
+.shape-label {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 22px;
+  height: 22px;
+  background: #000;
+  color: #fff;
+  font-size: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 
 /* ===== TOOLS ===== */
@@ -94,4 +111,66 @@
 
 .area-shape:active {
   cursor: grabbing;
+}
+
+.resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  right: -6px;
+  bottom: -6px;
+  background: #fff;
+  border: 2px solid #d00;
+  border-radius: 50%;
+  cursor: se-resize;
+}
+
+.rotate-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 2px solid #d00;
+  border-radius: 50%;
+  cursor: grab;
+}
+
+.stage-image-wrapper {
+  position: relative;
+}
+
+.stage-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Garante que a imagem nunca seja selecionada */
+.stage-image {
+  user-select: none;
+  pointer-events: none;
+}
+
+.remove-shape {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #00000071;
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.area-shape:hover .remove-shape {
+  opacity: 1;
 }

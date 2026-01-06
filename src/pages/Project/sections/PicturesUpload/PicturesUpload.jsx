@@ -1,4 +1,5 @@
 import "./PicturesUpload.css";
+import { ArrowRight } from "react-feather";
 
 export default function PicturesUpload({ images, setImages, onNext }) {
 
@@ -34,6 +35,16 @@ export default function PicturesUpload({ images, setImages, onNext }) {
 
   return (
     <div className="pictures-upload">
+      <div className="actions">
+        <button className="secondary">Instructions</button>
+        <button
+          className="primary"
+          disabled={images.length === 0}
+          onClick={onNext}
+        >
+          Next <ArrowRight size={12} />
+        </button>
+      </div>
       <h2>Upload Pictures</h2>
       <p className="subtitle">
         Upload photos of where the signs will be installed.
@@ -82,7 +93,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
           disabled={images.length === 0}
           onClick={onNext}
         >
-          Next
+          Next <ArrowRight size={12} />
         </button>
       </div>
     </div>

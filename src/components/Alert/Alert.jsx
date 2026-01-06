@@ -1,35 +1,37 @@
-import { useEffect } from "react";
 import "./Alert.css";
 
 export default function Alert({
+  open,
   type = "info",
+  title,
   message,
   onClose,
-  duration // ⬅ optional (seconds)
+  onConfirm,
+  confirmText = "Confirm",
+  cancelText = "Cancel"
 }) {
-  useEffect(() => {
-    if (!duration) return;
+  if (!open) return null;
 
-    const timer = setTimeout(() => {
-      onClose?.();
-    }, duration * 1000);
-
-    return () => clearTimeout(timer);
-  }, [duration, onClose]);
-
-  if (!message) return null;
+  const isConfirm = !!onConfirm;
 
   return (
-    <div className={`alert alert-${type}`}>
-      <span className="alert-message">{message}</span>
+    <div className="alert-overlay">
+      <div className={`alert-box alert-${type}`}>
+        {title && <h4 className="alert-title">{title}</h4>}
+        {message && <p className="alert-message">{message}</p>}
 
-      <button
-        className="alert-close"
-        onClick={onClose}
-        aria-label="Close alert"
-      >
-        ×
-      </button>
+        <div className="alert-actions">
+          <button className="alert-cancel" onClick={onClose}>
+            {cancelText}
+          </button>
+
+          {isConfirm && (
+            <button className="alert-confirm" onClick={onConfirm}>
+              {confirmText}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
