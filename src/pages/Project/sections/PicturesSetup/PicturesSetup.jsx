@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, ArrowRight } from "react-feather";
 import Alert from "../../../../components/Alert/Alert";
 import useBackConfirm from "../../../../hooks/useBackConfirm";
@@ -9,7 +9,13 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   const [areas, setAreas] = useState({});
   const [resizing, setResizing] = useState(null);
   const [rotating, setRotating] = useState(null);
+  const [stageSizes, setStageSizes] = useState({});
+  const [selectedShape, setSelectedShape] = useState(null);
 
+  const copiedShapeRef = useRef(null);
+
+
+  const stageImageRef = useRef(null);
   const backConfirm = useBackConfirm(onBack);
 
   useEffect(() => {
@@ -17,6 +23,85 @@ export default function PicturesSetup({ images, onNext, onBack }) {
       setActiveIndex(0);
     }
   }, [images, activeIndex]);
+
+  /* ===== MEASURE STAGE IMAGE (SAFE) ===== */
+  useEffect(() => {
+    const el = stageImageRef.current;
+    if (!el) return;
+
+    setStageSizes((prev) => {
+      const prevSize = prev[activeIndex];
+      const nextSize = {
+        width: el.offsetWidth,
+        height: el.offsetHeight
+      };
+
+      // 🔒 evita loop infinito
+      if (
+        prevSize &&
+        prevSize.width === nextSize.width &&
+        prevSize.height === nextSize.height
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [activeIndex]: nextSize
+      };
+    });
+  }, [activeIndex, images]);
+
+
+  /* ===== KEYBOARD SHORTCUTS ===== */
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (!selectedShape) return;
+
+      const { imageIndex, shapeIndex } = selectedShape;
+      const shape = areas[imageIndex]?.[shapeIndex];
+      if (!shape) return;
+
+      // DELETE
+      if (e.key === "Delete") {
+        e.preventDefault();
+        setAreas((prev) => {
+          const copy = { ...prev };
+          copy[imageIndex] = [...copy[imageIndex]];
+          copy[imageIndex].splice(shapeIndex, 1);
+          return copy;
+        });
+        setSelectedShape(null);
+      }
+
+      // COPY
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+        e.preventDefault();
+        copiedShapeRef.current = { ...shape };
+      }
+
+      // PASTE
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+        e.preventDefault();
+        if (!copiedShapeRef.current) return;
+
+        const pasted = {
+          ...copiedShapeRef.current,
+          x: copiedShapeRef.current.x + 20,
+          y: copiedShapeRef.current.y + 20
+        };
+
+        setAreas((prev) => ({
+          ...prev,
+          [imageIndex]: [...(prev[imageIndex] || []), pasted]
+        }));
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedShape, areas]);
+
 
   /* ===== ADD SHAPES ===== */
   function addShape(type) {
@@ -144,37 +229,35 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     const allSigns = [];
     let processed = 0;
 
-    const stageImageEl = document.querySelector(".stage-image");
-    if (!stageImageEl) return;
-
     images.forEach((imgObj, imageIndex) => {
       const img = new Image();
       img.src = imgObj.preview;
 
       img.onload = () => {
-        const scaleX = img.width / stageImageEl.offsetWidth;
-        const scaleY = img.height / stageImageEl.offsetHeight;
+        const stageSize = stageSizes[imageIndex];
+        if (!stageSize) {
+          processed++;
+          return;
+        }
 
-        /* ADD THIS LINE */
-        const yOffsetFix = 5 * scaleY;
+        const scaleX = img.width / stageSize.width;
+        const scaleY = img.height / stageSize.height;
 
         (areas[imageIndex] || []).forEach((s, shapeIndex) => {
-          // Canvas isolado por SIGN
           const canvas = document.createElement("canvas");
           canvas.width = img.width;
           canvas.height = img.height;
           const ctx = canvas.getContext("2d");
 
-          // Base image
           ctx.drawImage(img, 0, 0);
 
-          // Shape
           ctx.save();
           ctx.translate(
             (s.x + s.w / 2) * scaleX,
-            (s.y + s.h / 2) * scaleY + yOffsetFix
+            (s.y + s.h / 2) * scaleY
           );
           ctx.rotate((s.rotation * Math.PI) / 180);
+
           ctx.fillStyle = "rgba(220,0,0,0.25)";
           ctx.strokeStyle = "#d00";
           ctx.lineWidth = 2;
@@ -194,7 +277,6 @@ export default function PicturesSetup({ images, onNext, onBack }) {
 
           ctx.restore();
 
-          // Final SIGN object
           allSigns.push({
             id: `img-${imageIndex}-shape-${shapeIndex}`,
             imageIndex,
@@ -228,9 +310,14 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   return (
     <div className="pictures-setup">
       <div className="actions">
-        <button className="secondary" onClick={backConfirm.askBack}><ArrowLeft size={12} />Back</button>
-        <button className="primary" onClick={handleNext}>Next <ArrowRight size={12} /></button>
+        <button className="secondary" onClick={backConfirm.askBack}>
+          <ArrowLeft size={12} /> Back
+        </button>
+        <button className="primary" onClick={handleNext}>
+          Next <ArrowRight size={12} />
+        </button>
       </div>
+
       <div className="studio-header">
         <h2>Place the signs</h2>
         <p>Indicate where each sign will be installed.</p>
@@ -248,19 +335,19 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         ))}
       </div>
 
-      <hr></hr>
-
-      <p style={{ color: '#a8a8a8ff', marginBottom: '20px', fontSize: '13px' }}>Add signs location to the picture:</p>
-
       <div className="studio-tools">
         <button onClick={() => addShape("square")}>◼ Square | Rectangle</button>
         <button onClick={() => addShape("circle")}>● Circle | Oval</button>
       </div>
 
-      <div className="stage">
+      <div
+        className="stage"
+        onMouseDown={() => setSelectedShape(null)}
+      >
         <div className="stage-image-wrapper">
           {images[activeIndex] && (
             <img
+              ref={stageImageRef}
               src={images[activeIndex].preview}
               alt=""
               className="stage-image"
@@ -279,9 +366,21 @@ export default function PicturesSetup({ images, onNext, onBack }) {
               top: s.y,
               width: s.w,
               height: s.h,
-              transform: `rotate(${s.rotation}deg)`
+              transform: `rotate(${s.rotation}deg)`,
+              outline:
+                selectedShape &&
+                  selectedShape.imageIndex === activeIndex &&
+                  selectedShape.shapeIndex === i
+                  ? "2px solid #1e6bff"
+                  : "none"
             }}
-            onMouseDown={(e) => startDrag(e, i)}
+
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setSelectedShape({ imageIndex: activeIndex, shapeIndex: i });
+              startDrag(e, i);
+            }}
+
           >
             <div className="shape-label">{i + 1}</div>
             <button
@@ -304,11 +403,6 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         ))}
       </div>
 
-      <div className="actions">
-        <button className="secondary" onClick={backConfirm.askBack}><ArrowLeft size={12} />Back</button>
-        <button className="primary" onClick={handleNext}>Next <ArrowRight size={12} /></button>
-      </div>
-
       <Alert
         open={backConfirm.open}
         title="Go back?"
@@ -316,7 +410,6 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         onClose={backConfirm.cancel}
         onConfirm={backConfirm.confirm}
       />
-
     </div>
   );
 }
