@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight } from "react-feather";
 import Alert from "../../../../components/Alert/Alert";
 import useBackConfirm from "../../../../hooks/useBackConfirm";
@@ -59,6 +59,10 @@ export default function SignType({ signs = [], onNext, onBack }) {
     }))
   );
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, []);
+
   const backConfirm = useBackConfirm(onBack);
 
   function updateSign(index, changes) {
@@ -74,6 +78,15 @@ export default function SignType({ signs = [], onNext, onBack }) {
     updateSign(index, {
       [field]: value,
       estimateWithAI: !(valid && Number(data[index].width) > 0 && Number(data[index].height) > 0)
+    });
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
   }
 
@@ -93,7 +106,10 @@ export default function SignType({ signs = [], onNext, onBack }) {
           <div key={index} className={`sign-card ${sign.aiMode ? "ai-active" : ""}`}>
             {/* Preview */}
             <div className="sign-preview">
-              <img src={sign.preview} alt="" />
+              <img
+                src={sign.preview}
+                alt=""
+              />
             </div>
 
             {/* Config */}
@@ -213,10 +229,24 @@ export default function SignType({ signs = [], onNext, onBack }) {
                 type="file"
                 accept="image/*"
                 disabled={sign.aiMode}
-                onChange={(e) => updateSign(index, { logo: e.target.files[0] })}
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+
+                  const base64 = await fileToBase64(file);
+
+                  updateSign(index, {
+                    logo: {
+                      name: file.name,
+                      type: file.type,
+                      base64
+                    }
+                  });
+                }}
+
               />
-              {sign.logo ? (
-                <img src={URL.createObjectURL(sign.logo)} alt="" />
+              {sign.logo?.base64 ? (
+                <img src={sign.logo.base64} alt="" />
               ) : (
                 <span>Drop or select logo / artwork</span>
               )}

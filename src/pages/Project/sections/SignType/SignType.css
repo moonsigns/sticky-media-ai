@@ -53,6 +53,7 @@
 ========================= */
 .sign-preview {
   width: 320px;
+  min-width: 280px;
   flex-shrink: 0;
 }
 
@@ -295,7 +296,7 @@
    LOGO DROPZONE
 ========================= */
 .logo-dropzone {
-  width: 220px;
+  width: 180px;
   border: 2px dashed #ddd;
   border-radius: 18px;
   display: flex;

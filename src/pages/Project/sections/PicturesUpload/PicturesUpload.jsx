@@ -66,7 +66,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
           <span className="upload-icon">＋</span>
           <p>Drag & drop your images here</p>
           <span className="or">or</span>
-          <button className="select-btn">Select from your computer</button>
+          <button className="select-btn">Select from your device</button>
         </div>
       </div>
 

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import PicturesUpload from "./sections/PicturesUpload/PicturesUpload";
 import PicturesSetup from "./sections/PicturesSetup/PicturesSetup";
 import SignType from "./sections/SignType/SignType";
-import ProjectDetails from "./sections/ProjectDetails/ProjectDetails";
 import ProjectReview from "./sections/ProjectReview/ProjectReview";
 import "./ProjectSetup.css";
 
@@ -10,7 +9,6 @@ const STEPS = {
     UPLOAD: "pictures-upload",
     SETUP: "pictures-setup",
     SIGN: "sign-type",
-    DETAILS: "details",
     REVIEW: "review"
 };
 
@@ -71,23 +69,16 @@ export default function ProjectSetup({ onGenerate }) {
                         onBack={() => updateStep(STEPS.SETUP)}
                         onNext={(updatedSigns) => {
                             setSigns(updatedSigns);
-                            updateStep(STEPS.DETAILS);
+                            updateStep(STEPS.REVIEW);
                         }}
-                    />
-                );
-
-            case STEPS.DETAILS:
-                return (
-                    <ProjectDetails
-                        onBack={() => updateStep(STEPS.SIGN)}
-                        onNext={() => updateStep(STEPS.REVIEW)}
                     />
                 );
 
             case STEPS.REVIEW:
                 return (
                     <ProjectReview
-                        onBack={() => updateStep(STEPS.DETAILS)}
+                        signs={signs}
+                        onBack={() => updateStep(STEPS.SIGN)}
                         onGenerate={onGenerate}
                     />
                 );

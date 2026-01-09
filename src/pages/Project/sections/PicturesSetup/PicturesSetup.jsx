@@ -19,6 +19,10 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   const backConfirm = useBackConfirm(onBack);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, []);
+
+  useEffect(() => {
     if (activeIndex >= images.length) {
       setActiveIndex(0);
     }
@@ -243,7 +247,17 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         const scaleX = img.width / stageSize.width;
         const scaleY = img.height / stageSize.height;
 
+        // ===== COMPOSITE CANVAS (BASE + ALL SHAPES) =====
+        const compositeCanvas = document.createElement("canvas");
+        compositeCanvas.width = img.width;
+        compositeCanvas.height = img.height;
+        const compositeCtx = compositeCanvas.getContext("2d");
+
+        // base image
+        compositeCtx.drawImage(img, 0, 0);
+
         (areas[imageIndex] || []).forEach((s, shapeIndex) => {
+          /* ===== INDIVIDUAL SIGN CANVAS ===== */
           const canvas = document.createElement("canvas");
           canvas.width = img.width;
           canvas.height = img.height;
@@ -277,23 +291,91 @@ export default function PicturesSetup({ images, onNext, onBack }) {
 
           ctx.restore();
 
+          /* ===== DRAW SHAPE ON COMPOSITE ===== */
+          compositeCtx.save();
+          compositeCtx.translate(
+            (s.x + s.w / 2) * scaleX,
+            (s.y + s.h / 2) * scaleY
+          );
+          compositeCtx.rotate((s.rotation * Math.PI) / 180);
+
+          compositeCtx.fillStyle = "rgba(220,0,0,0.25)";
+          compositeCtx.strokeStyle = "#d00";
+          compositeCtx.lineWidth = 2;
+
+          compositeCtx.fillRect(
+            (-s.w / 2) * scaleX,
+            (-s.h / 2) * scaleY,
+            s.w * scaleX,
+            s.h * scaleY
+          );
+          compositeCtx.strokeRect(
+            (-s.w / 2) * scaleX,
+            (-s.h / 2) * scaleY,
+            s.w * scaleX,
+            s.h * scaleY
+          );
+
+          compositeCtx.restore();
+
+          /* ===== DRAW INDEX BADGE (COMPOSITE ONLY) ===== */
+          compositeCtx.save();
+
+          const badgeX = (s.x + s.w / 2) * scaleX;
+          const badgeY = (s.y - 14) * scaleY;
+
+          compositeCtx.fillStyle = "#1e6bff";
+          compositeCtx.beginPath();
+          compositeCtx.arc(badgeX, badgeY, 14, 0, Math.PI * 2);
+          compositeCtx.fill();
+
+          compositeCtx.fillStyle = "#fff";
+          compositeCtx.font = "bold 14px system-ui";
+          compositeCtx.textAlign = "center";
+          compositeCtx.textBaseline = "middle";
+          compositeCtx.fillText(
+            String(shapeIndex + 1),
+            badgeX,
+            badgeY
+          );
+
+          compositeCtx.restore();
+
+          /* ===== PUSH SIGN OBJECT ===== */
           allSigns.push({
             id: `img-${imageIndex}-shape-${shapeIndex}`,
             imageIndex,
             shapeIndex,
             label: `Sign ${shapeIndex + 1}`,
+
+            // base image (clean, original)
+            previewBase: imgObj.preview,
+
+            // individual preview (for SignType)
             preview: canvas.toDataURL("image/png"),
+
             shape: {
               ...s,
               x: s.x * scaleX,
               y: s.y * scaleY,
               w: s.w * scaleX,
-              h: s.h * scaleY
+              h: s.h * scaleY,
+              rotation: s.rotation || 0
             },
+
             signType: null,
             logo: null
           });
         });
+
+        /* ===== ATTACH COMPOSITE PREVIEW TO SIGNS ===== */
+        const compositePreview = compositeCanvas.toDataURL("image/png");
+
+        allSigns
+          .filter((s) => s.imageIndex === imageIndex)
+          .forEach((s) => {
+            s.compositePreview = compositePreview;
+          });
 
         processed++;
         if (processed === images.length) {
@@ -302,6 +384,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
       };
     });
   }
+
 
   function handleNext() {
     exportAllImages(onNext);
@@ -401,6 +484,15 @@ export default function PicturesSetup({ images, onNext, onBack }) {
             />
           </div>
         ))}
+      </div>
+
+      <div className="actions">
+        <button className="secondary" onClick={backConfirm.askBack}>
+          <ArrowLeft size={12} /> Back
+        </button>
+        <button className="primary" onClick={handleNext}>
+          Next <ArrowRight size={12} />
+        </button>
       </div>
 
       <Alert
