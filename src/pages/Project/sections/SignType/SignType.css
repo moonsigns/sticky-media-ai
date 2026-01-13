@@ -22,7 +22,7 @@
 ========================= */
 .sign-cards {
   display: flex;
-  /* flex-direction: column; */
+  flex-direction: column;
   gap: 26px;
 }
 
