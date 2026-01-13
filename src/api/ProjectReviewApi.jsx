@@ -85,7 +85,13 @@ export function buildProjectPayload({
       email: contact.email,
       verified
     },
-    images: images || [],
+    images: (images || []).map(img => ({
+      imageIndex: img.imageIndex,
+      baseImage: img.baseImage ?? null,
+      maskImage: img.maskImage ?? null,
+      preparedPreview: img.preparedPreview ?? null,
+      compositePreview: img.compositePreview ?? null
+    })),
     installation: {
       required: installationRequired,
       address: installationRequired ? address : ""
@@ -104,7 +110,8 @@ export function buildProjectPayload({
       aiMode: s.aiMode ?? false,
       logo: s.logo?.base64 ?? null,
       preview: s.preview ?? "",
-      shape: s.shape ?? null
+      shape: s.shape ?? null,
+      instructions: s.instructions ?? ""
     }))
   };
 }

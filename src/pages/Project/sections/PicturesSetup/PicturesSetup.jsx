@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, ArrowRight } from "react-feather";
+import { ArrowLeft, ArrowRight, Plus } from "react-feather";
 import Alert from "../../../../components/Alert/Alert";
 import useBackConfirm from "../../../../hooks/useBackConfirm";
 import "./PicturesSetup.css";
@@ -62,21 +62,28 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     function handleKeyDown(e) {
       if (!selectedShape) return;
 
-      const { imageIndex, shapeIndex } = selectedShape;
-      const shape = areas[imageIndex]?.[shapeIndex];
+      const { imageIndex, shapeId } = selectedShape;
+      const shape = areas[imageIndex]?.find(s => s.id === shapeId);
       if (!shape) return;
 
       // DELETE
+      // DELETE (FIXED — uses shapeId, not index)
       if (e.key === "Delete") {
         e.preventDefault();
+
         setAreas((prev) => {
           const copy = { ...prev };
-          copy[imageIndex] = [...copy[imageIndex]];
-          copy[imageIndex].splice(shapeIndex, 1);
+
+          copy[imageIndex] = (copy[imageIndex] || []).filter(
+            (s) => s.id !== shapeId
+          );
+
           return copy;
         });
+
         setSelectedShape(null);
       }
+
 
       // COPY
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
@@ -91,6 +98,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
 
         const pasted = {
           ...copiedShapeRef.current,
+          id: crypto.randomUUID(),
           x: copiedShapeRef.current.x + 20,
           y: copiedShapeRef.current.y + 20
         };
@@ -114,6 +122,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
       [activeIndex]: [
         ...(prev[activeIndex] || []),
         {
+          id: crypto.randomUUID(),
           type,
           x: 180,
           y: 120,
@@ -168,10 +177,12 @@ export default function PicturesSetup({ images, onNext, onBack }) {
       setAreas((prev) => {
         const copy = { ...prev };
         copy[activeIndex] = [...copy[activeIndex]];
+        const MIN_SIZE = 15;
+
         copy[activeIndex][i] = {
           ...shape,
-          w: Math.max(40, shape.w + (ev.clientX - startX)),
-          h: Math.max(40, shape.h + (ev.clientY - startY))
+          w: Math.max(MIN_SIZE, shape.w + (ev.clientX - startX)),
+          h: Math.max(MIN_SIZE, shape.h + (ev.clientY - startY))
         };
         return copy;
       });
@@ -187,23 +198,28 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     window.addEventListener("mouseup", up);
   }
 
-  /* ===== ROTATE ===== */
+  /* ===== ROTATE (SMOOTH) ===== */
   function startRotate(e, i) {
     e.stopPropagation();
     setRotating(i);
 
+    const startX = e.clientX;
     const shape = areas[activeIndex][i];
-    const cx = shape.x + shape.w / 2;
-    const cy = shape.y + shape.h / 2;
+    const startRotation = shape.rotation || 0;
+
+    const SENSITIVITY = 0.2; // 👈 quanto menor, mais suave (0.15–0.3 ideal)
 
     function move(ev) {
-      const angle =
-        Math.atan2(ev.clientY - cy, ev.clientX - cx) * (180 / Math.PI);
+      const deltaX = ev.clientX - startX;
+      const newRotation = startRotation + deltaX * SENSITIVITY;
 
       setAreas((prev) => {
         const copy = { ...prev };
         copy[activeIndex] = [...copy[activeIndex]];
-        copy[activeIndex][i] = { ...shape, rotation: angle };
+        copy[activeIndex][i] = {
+          ...copy[activeIndex][i],
+          rotation: newRotation
+        };
         return copy;
       });
     }
@@ -218,6 +234,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     window.addEventListener("mouseup", up);
   }
 
+
   /* ===== REMOVE ===== */
   function removeShape(i) {
     setAreas((prev) => {
@@ -228,40 +245,127 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     });
   }
 
-  /* ===== EXPORT ALL IMAGES & SIGNS ===== */
-  function exportAllImages(callback) {
+  /* ===== EXPORT ALL IMAGES & SIGNS (FINAL / STABLE) ===== */
+  function exportAllImages(callback, signsInput = []) {
     const allSigns = [];
-    let processed = 0;
+    let processedImages = 0;
 
     images.forEach((imgObj, imageIndex) => {
       const img = new Image();
       img.src = imgObj.preview;
 
-      img.onload = () => {
+      img.onload = async () => {
         const stageSize = stageSizes[imageIndex];
         if (!stageSize) {
-          processed++;
+          processedImages++;
           return;
         }
 
         const scaleX = img.width / stageSize.width;
         const scaleY = img.height / stageSize.height;
 
-        // ===== COMPOSITE CANVAS (BASE + ALL SHAPES) =====
+        /* ===== BASE CANVASES ===== */
         const compositeCanvas = document.createElement("canvas");
-        compositeCanvas.width = img.width;
-        compositeCanvas.height = img.height;
+        const maskCanvas = document.createElement("canvas");
+        const preparedCanvas = document.createElement("canvas");
+
+        [compositeCanvas, maskCanvas, preparedCanvas].forEach(c => {
+          c.width = img.width;
+          c.height = img.height;
+        });
+
         const compositeCtx = compositeCanvas.getContext("2d");
+        const maskCtx = maskCanvas.getContext("2d");
+        const preparedCtx = preparedCanvas.getContext("2d");
 
         // base image
         compositeCtx.drawImage(img, 0, 0);
+        preparedCtx.drawImage(img, 0, 0);
 
-        (areas[imageIndex] || []).forEach((s, shapeIndex) => {
-          /* ===== INDIVIDUAL SIGN CANVAS ===== */
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext("2d");
+        // full black mask
+        maskCtx.fillStyle = "#000";
+        maskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+
+        const logoPromises = [];
+        const shapes = areas[imageIndex] || [];
+
+        /* ===== DRAW ALL SHAPES ===== */
+        shapes.forEach((s, shapeIndex) => {
+          const cx = (s.x + s.w / 2) * scaleX;
+          const cy = (s.y + s.h / 2) * scaleY;
+          const rw = s.w * scaleX;
+          const rh = s.h * scaleY;
+
+          /* --- COMPOSITE --- */
+          compositeCtx.save();
+          compositeCtx.translate(cx, cy);
+          compositeCtx.rotate((s.rotation * Math.PI) / 180);
+          compositeCtx.fillStyle = "rgba(220,0,0,0.25)";
+          compositeCtx.strokeStyle = "#d00";
+          compositeCtx.lineWidth = 2;
+          compositeCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
+          compositeCtx.strokeRect(-rw / 2, -rh / 2, rw, rh);
+          compositeCtx.restore();
+
+          /* --- MASK --- */
+          maskCtx.save();
+          maskCtx.translate(cx, cy);
+          maskCtx.rotate((s.rotation * Math.PI) / 180);
+          maskCtx.fillStyle = "#fff";
+          maskCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
+          maskCtx.restore();
+
+          /* --- LOGO → PREPARED --- */
+          const signWithLogo = signsInput.find(
+            sign =>
+              sign.imageIndex === imageIndex &&
+              sign.shapeId === s.id &&
+              sign.logo?.base64
+          );
+
+          if (signWithLogo?.logo?.base64) {
+            logoPromises.push(
+              new Promise(resolve => {
+                const logoImg = new Image();
+                logoImg.src = signWithLogo.logo.base64;
+                logoImg.onload = () => {
+                  preparedCtx.save();
+                  preparedCtx.translate(cx, cy);
+                  preparedCtx.rotate((s.rotation * Math.PI) / 180);
+                  const pad = 12 * scaleX;
+                  preparedCtx.drawImage(
+                    logoImg,
+                    -rw / 2 + pad,
+                    -rh / 2 + pad,
+                    rw - pad * 2,
+                    rh - pad * 2
+                  );
+                  preparedCtx.restore();
+                  resolve();
+                };
+              })
+            );
+          }
+        });
+
+        await Promise.all(logoPromises);
+
+        const finalMask = maskCanvas.toDataURL("image/png");
+        const finalPrepared = preparedCanvas.toDataURL("image/png");
+        const finalComposite = compositeCanvas.toDataURL("image/png");
+
+        /* ===== CREATE INDIVIDUAL SIGNS ===== */
+        shapes.forEach((s, shapeIndex) => {
+          const existing = signsInput.find(
+            sign =>
+              sign.imageIndex === imageIndex &&
+              sign.shapeId === s.id
+          );
+
+          const singleCanvas = document.createElement("canvas");
+          singleCanvas.width = img.width;
+          singleCanvas.height = img.height;
+          const ctx = singleCanvas.getContext("2d");
 
           ctx.drawImage(img, 0, 0);
 
@@ -271,11 +375,9 @@ export default function PicturesSetup({ images, onNext, onBack }) {
             (s.y + s.h / 2) * scaleY
           );
           ctx.rotate((s.rotation * Math.PI) / 180);
-
           ctx.fillStyle = "rgba(220,0,0,0.25)";
           ctx.strokeStyle = "#d00";
           ctx.lineWidth = 2;
-
           ctx.fillRect(
             (-s.w / 2) * scaleX,
             (-s.h / 2) * scaleY,
@@ -288,71 +390,21 @@ export default function PicturesSetup({ images, onNext, onBack }) {
             s.w * scaleX,
             s.h * scaleY
           );
-
           ctx.restore();
 
-          /* ===== DRAW SHAPE ON COMPOSITE ===== */
-          compositeCtx.save();
-          compositeCtx.translate(
-            (s.x + s.w / 2) * scaleX,
-            (s.y + s.h / 2) * scaleY
-          );
-          compositeCtx.rotate((s.rotation * Math.PI) / 180);
-
-          compositeCtx.fillStyle = "rgba(220,0,0,0.25)";
-          compositeCtx.strokeStyle = "#d00";
-          compositeCtx.lineWidth = 2;
-
-          compositeCtx.fillRect(
-            (-s.w / 2) * scaleX,
-            (-s.h / 2) * scaleY,
-            s.w * scaleX,
-            s.h * scaleY
-          );
-          compositeCtx.strokeRect(
-            (-s.w / 2) * scaleX,
-            (-s.h / 2) * scaleY,
-            s.w * scaleX,
-            s.h * scaleY
-          );
-
-          compositeCtx.restore();
-
-          /* ===== DRAW INDEX BADGE (COMPOSITE ONLY) ===== */
-          compositeCtx.save();
-
-          const badgeX = (s.x + s.w / 2) * scaleX;
-          const badgeY = (s.y - 14) * scaleY;
-
-          compositeCtx.fillStyle = "#1e6bff";
-          compositeCtx.beginPath();
-          compositeCtx.arc(badgeX, badgeY, 14, 0, Math.PI * 2);
-          compositeCtx.fill();
-
-          compositeCtx.fillStyle = "#fff";
-          compositeCtx.font = "bold 14px system-ui";
-          compositeCtx.textAlign = "center";
-          compositeCtx.textBaseline = "middle";
-          compositeCtx.fillText(
-            String(shapeIndex + 1),
-            badgeX,
-            badgeY
-          );
-
-          compositeCtx.restore();
-
-          /* ===== PUSH SIGN OBJECT ===== */
           allSigns.push({
-            id: `img-${imageIndex}-shape-${shapeIndex}`,
+            id: existing?.id || s.id,
             imageIndex,
-            shapeIndex,
-            label: `Sign ${shapeIndex + 1}`,
+            shapeIndex,        // ✅ CRÍTICO
+            shapeId: s.id,     // ✅ ESTÁVEL
+            label: existing?.label || `Sign ${shapeIndex + 1}`,
 
-            // base image (clean, original)
-            previewBase: imgObj.preview,
+            preview: singleCanvas.toDataURL("image/png"),
+            compositePreview: finalComposite,
 
-            // individual preview (for SignType)
-            preview: canvas.toDataURL("image/png"),
+            baseImage: imgObj.preview,
+            maskImage: finalMask,
+            preparedPreview: finalPrepared,
 
             shape: {
               ...s,
@@ -363,27 +415,25 @@ export default function PicturesSetup({ images, onNext, onBack }) {
               rotation: s.rotation || 0
             },
 
-            signType: null,
-            logo: null
+            signType: existing?.signType ?? null,
+            logo: existing?.logo ?? null,
+            illuminated: existing?.illuminated ?? true,
+            width: existing?.width ?? "",
+            height: existing?.height ?? "",
+            estimateWithAI: existing?.estimateWithAI ?? true,
+            addition: existing?.addition ?? null,
+            aiMode: existing?.aiMode ?? false
           });
         });
 
-        /* ===== ATTACH COMPOSITE PREVIEW TO SIGNS ===== */
-        const compositePreview = compositeCanvas.toDataURL("image/png");
-
-        allSigns
-          .filter((s) => s.imageIndex === imageIndex)
-          .forEach((s) => {
-            s.compositePreview = compositePreview;
-          });
-
-        processed++;
-        if (processed === images.length) {
+        processedImages++;
+        if (processedImages === images.length) {
           callback(allSigns);
         }
       };
     });
   }
+
 
 
   function handleNext() {
@@ -418,15 +468,22 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         ))}
       </div>
 
-      <div className="studio-tools">
+      {/* <div className="studio-tools">
         <button onClick={() => addShape("square")}>◼ Square | Rectangle</button>
         <button onClick={() => addShape("circle")}>● Circle | Oval</button>
-      </div>
+      </div> */}
 
       <div
         className="stage"
         onMouseDown={() => setSelectedShape(null)}
       >
+        <button
+          className="add-sign-btn"
+          onClick={() => addShape("square")}
+        >
+          <Plus size={16} /> Add Sign
+        </button>
+
         <div className="stage-image-wrapper">
           {images[activeIndex] && (
             <img
@@ -441,8 +498,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         </div>
 
         {(areas[activeIndex] || []).map((s, i) => (
-          <div
-            key={i}
+          <div key={s.id}
             className={`area-shape ${s.type}`}
             style={{
               left: s.x,
@@ -453,14 +509,14 @@ export default function PicturesSetup({ images, onNext, onBack }) {
               outline:
                 selectedShape &&
                   selectedShape.imageIndex === activeIndex &&
-                  selectedShape.shapeIndex === i
+                  selectedShape.shapeId === s.id
                   ? "2px solid #1e6bff"
                   : "none"
             }}
 
             onMouseDown={(e) => {
               e.stopPropagation();
-              setSelectedShape({ imageIndex: activeIndex, shapeIndex: i });
+              setSelectedShape({ imageIndex: activeIndex, shapeId: s.id });
               startDrag(e, i);
             }}
 

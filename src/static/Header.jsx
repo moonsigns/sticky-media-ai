@@ -34,7 +34,7 @@ export default function Header({
                 {/* Right: actions */}
                 <div className="assistant-actions">
 
-                    {onAssistance && (
+                    {/* {onAssistance && (
                         <button
                             className="assistant-action-btn"
                             onClick={onAssistance}
@@ -43,7 +43,7 @@ export default function Header({
                             <MessageCircle size={18} />
                             <span>Assistant</span>
                         </button>
-                    )}
+                    )} */}
 
                     {/* {onAiKnowledge && (
                         <button

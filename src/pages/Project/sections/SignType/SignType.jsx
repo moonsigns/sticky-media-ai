@@ -55,7 +55,8 @@ export default function SignType({ signs = [], onNext, onBack }) {
       aiMode: false,
       openCategory: null,
       openDetails: false,
-      addition: s.addition || null
+      addition: s.addition || null,
+      instructions: s.instructions || ""
     }))
   );
 
@@ -223,34 +224,50 @@ export default function SignType({ signs = [], onNext, onBack }) {
               )}
             </div>
 
-            {/* Logo */}
-            <div className={`logo-dropzone ${sign.aiMode ? "disabled" : ""}`}>
-              <input
-                type="file"
-                accept="image/*"
-                disabled={sign.aiMode}
-                onChange={async (e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
+            <div className="logo-and-instructions">
+              {/* Logo */}
+              <div className={`logo-dropzone ${sign.aiMode ? "disabled" : ""}`}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={sign.aiMode}
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
 
-                  const base64 = await fileToBase64(file);
+                    const base64 = await fileToBase64(file);
 
-                  updateSign(index, {
-                    logo: {
-                      name: file.name,
-                      type: file.type,
-                      base64
-                    }
-                  });
-                }}
+                    updateSign(index, {
+                      logo: {
+                        name: file.name,
+                        type: file.type,
+                        base64
+                      }
+                    });
+                  }}
+                />
 
-              />
-              {sign.logo?.base64 ? (
-                <img src={sign.logo.base64} alt="" />
-              ) : (
-                <span>Drop or select logo / artwork</span>
-              )}
+                {sign.logo?.base64 ? (
+                  <img src={sign.logo.base64} alt="" />
+                ) : (
+                  <span>Drop or select logo / artwork</span>
+                )}
+              </div>
+
+              {/* Sign Instructions */}
+              <div className="sign-instructions">
+                <label>Sign Instructions (optional)</label>
+                <textarea
+                  placeholder="Instructions for this sign (materials, mounting, colors, fabrication notes, etc.)"
+                  value={sign.instructions || ""}
+                  onChange={(e) =>
+                    updateSign(index, { instructions: e.target.value })
+                  }
+                />
+              </div>
             </div>
+
+
           </div>
         ))}
       </div>

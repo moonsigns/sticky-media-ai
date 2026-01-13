@@ -22,7 +22,7 @@
 ========================= */
 .sign-cards {
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
   gap: 26px;
 }
 
@@ -190,7 +190,7 @@
 
 .illum-btn.active {
   background: #1e6bff;
-  border-color:#1e6bff;
+  border-color: #1e6bff;
   color: #fff;
 }
 
@@ -296,7 +296,8 @@
    LOGO DROPZONE
 ========================= */
 .logo-dropzone {
-  width: 180px;
+  min-width: 220px;
+  min-height: 140px;
   border: 2px dashed #ddd;
   border-radius: 18px;
   display: flex;
@@ -331,4 +332,165 @@
   display: flex;
   justify-content: space-between;
   margin-top: 36px;
+}
+
+/* Wrapper vertical */
+.logo-and-instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 260px;
+  /* mesma largura do logo */
+}
+
+/* Logo dropzone (mantém o que você já tem, só refinando) */
+.logo-dropzone {
+  border: 1px dashed #d2d2d7;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  background: #fafafa;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.logo-dropzone:hover {
+  border-color: #0071e3;
+  background: #f5f9ff;
+}
+
+/* Instructions block */
+.sign-instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sign-instructions label {
+  font-size: 12px;
+  color: #6e6e73;
+  font-weight: 500;
+}
+
+/* Apple-style textarea */
+.sign-instructions textarea {
+  resize: vertical;
+  min-height: 125px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #d2d2d7;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", Arial, sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sign-instructions textarea::placeholder {
+  color: #9e9ea3;
+}
+
+.sign-instructions textarea:focus {
+  border-color: #0071e3;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+}
+
+/* =========================
+   MOBILE / TABLET: < 900px
+   Force layout: image -> config -> logo+instructions
+========================= */
+@media (max-width: 900px) {
+  .sign-type {
+    max-width: 100%;
+    margin: 20px auto;
+    padding: 0 14px;
+  }
+
+  .sign-type h2 {
+    font-size: 16px;
+    margin-top: 10px;
+  }
+
+
+  /* A lista continua coluna */
+  .sign-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ✅ CRÍTICO: o card vira COLUNA (nada fica ao lado) */
+  .sign-card {
+    display: flex;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  /* ✅ garante que a imagem ocupe 100% e venha primeiro */
+  .sign-preview {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex-shrink: 0;
+    order: 1;
+  }
+
+  .sign-preview img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* ✅ setup/config SEMPRE embaixo da imagem */
+  .sign-config {
+    width: 100% !important;
+    order: 2;
+  }
+
+  /* ✅ logo + instructions embaixo do config */
+  .logo-and-instructions {
+    width: 100% !important;
+    order: 3;
+  }
+
+  .logo-dropzone {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 140px;
+  }
+
+  /* Ajustes internos pra não “estourar” */
+  .category-panel.open {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .illumination {
+    flex-wrap: wrap;
+  }
+
+  .dimensions {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .dimensions input {
+    width: 100% !important;
+  }
+
+  .additions-options {
+    flex-wrap: wrap;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .actions button {
+    width: 100%;
+  }
 }

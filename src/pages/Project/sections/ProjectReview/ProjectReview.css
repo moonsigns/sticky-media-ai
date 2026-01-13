@@ -726,3 +726,87 @@
     grid-template-columns: 1fr;
   }
 }
+
+.submit-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submit-modal {
+  width: 520px;
+  padding: 40px;
+  background: rgba(255, 255, 255, .85);
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, .25);
+}
+
+.submit-loader {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.submit-spinner {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 6px solid #e5e7eb;
+  border-top-color: #2563eb;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+.submit-percent {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.submit-carousel {
+  overflow: hidden;
+  width: 100%;
+}
+
+.submit-carousel-track {
+  display: flex;
+  width: 100%;
+}
+
+.submit-step {
+  min-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 18px;
+}
+
+.submit-icon {
+  font-size: 22px;
+}
+
+@media (max-width: 900px) {
+
+  .pr-header h1  {
+    font-size: 20px;
+    font-weight: 500;
+    margin-top: 10px;
+  }
+
+}

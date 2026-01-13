@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, Mail, MapPin, Shield } from "react-feather";
+import { ArrowLeft, CheckCircle, MapPin, Shield } from "react-feather";
 import Alert from "../../../../components/Alert/Alert";
 import useBackConfirm from "../../../../hooks/useBackConfirm";
 import ProjectReviewApi from "../../../../api/ProjectReviewApi";
@@ -49,15 +49,38 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
   const emailValid = ProjectReviewApi.isValidEmail(email);
   const addressValid = !installationRequired || address.trim().length >= 8;
 
-  const canOpenVerify = emailValid && !verified && !isSendingCode;
-  const canSubmit = verified && signs.length > 0 && addressValid;
+  // const canOpenVerify = emailValid && !verified && !isSendingCode;
+  const projectNameValid = projectName.trim().length > 0;
+
+  const canSubmit =
+    verified &&
+    signs.length > 0 &&
+    addressValid &&
+    projectNameValid;
+
+  const [submitModalOpen, setSubmitModalOpen] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState(0);
+  const [submitDone, setSubmitDone] = useState(false);
+
+  const [activeSubmitStep, setActiveSubmitStep] = useState(0);
+
+  const [submitStepIndex, setSubmitStepIndex] = useState(0);
+
+  const SUBMIT_STEPS = [
+    { icon: "📄", text: "Generating Scope of Work" },
+    { icon: "📐", text: "Generating estimated costs, dimensions and details" },
+    { icon: "🧠", text: "Generating render / visual with AI" },
+    { icon: "📦", text: "Generating Project" },
+    { icon: "✉️", text: "Sending email with project details" }
+  ];
 
   const submitHint = useMemo(() => {
     if (!signs.length) return "No signs found.";
     if (!verified) return "Validate your email to submit.";
+    if (!projectNameValid) return "Project name is required.";
     if (!addressValid) return "Enter a valid installation address.";
     return "";
-  }, [signs, verified, addressValid]);
+  }, [signs, verified, addressValid, projectNameValid]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -79,6 +102,128 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
         clearProjectAuth();
       });
   }, []);
+
+  useEffect(() => {
+    if (!submitModalOpen || submitDone) return;
+
+    const interval = setInterval(() => {
+      setActiveSubmitStep((s) => (s + 1) % SUBMIT_STEPS.length);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [submitModalOpen, submitDone]);
+
+  useEffect(() => {
+    if (!submitModalOpen || submitDone) return;
+
+    const stepInterval = setInterval(() => {
+      setSubmitStepIndex((prev) => (prev + 1) % SUBMIT_STEPS.length);
+    }, 3500); // ⬅️ velocidade do carrossel (ajuste aqui)
+
+    return () => clearInterval(stepInterval);
+  }, [submitModalOpen, submitDone]);
+
+
+  /* ===== BUILD IMAGE WITH LOGOS ===== */
+  function buildPreparedImage(imgGroup) {
+    return new Promise((resolve) => {
+      const base = imgGroup.signs[0]?.baseImage;
+      if (!base) return resolve(null);
+
+      const img = new Image();
+      img.src = base;
+
+      img.onload = async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+
+        // base
+        ctx.drawImage(img, 0, 0);
+
+        const logoPromises = imgGroup.signs.map((s, index) => {
+          if (!s.logo?.base64 || !s.shape) return null;
+
+          return new Promise((res) => {
+            const logo = new Image();
+            logo.src = s.logo.base64;
+
+            logo.onload = () => {
+              const { x, y, w, h, rotation = 0 } = s.shape;
+
+              ctx.save();
+              ctx.translate(x + w / 2, y + h / 2);
+              ctx.rotate((rotation * Math.PI) / 180);
+
+              // ===== LOGO =====
+              const paddingRatio = 0.01;
+              const maxW = w * (1.3 - paddingRatio * 1);
+              const maxH = h * (1.3 - paddingRatio * 1);
+
+              const logoRatio = logo.width / logo.height;
+              const boxRatio = maxW / maxH;
+
+              let drawW, drawH;
+              if (logoRatio > boxRatio) {
+                drawW = maxW;
+                drawH = maxW / logoRatio;
+              } else {
+                drawH = maxH;
+                drawW = maxH * logoRatio;
+              }
+
+              ctx.drawImage(
+                logo,
+                -drawW / 2,
+                -drawH / 2,
+                drawW,
+                drawH
+              );
+
+              // ===== INDEX BADGE =====
+              const badgeRadius = Math.max(14, Math.min(w, h) * 0.12);
+              const badgeX = 0;
+              const badgeY = -h / 2 - badgeRadius - 8;
+
+              ctx.fillStyle = "#1e6bff";
+              ctx.beginPath();
+              ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.fillStyle = "#fff";
+              ctx.font = `bold ${badgeRadius}px system-ui`;
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.fillText(String(index + 1), badgeX, badgeY);
+
+              ctx.restore();
+              res();
+            };
+          });
+        });
+
+        await Promise.all(logoPromises.filter(Boolean));
+        resolve(canvas.toDataURL("image/png"));
+      };
+    });
+  }
+
+  /* ===== INSIDE ProjectReview COMPONENT ===== */
+
+  const [preparedImages, setPreparedImages] = useState({});
+
+  useEffect(() => {
+    async function run() {
+      const map = {};
+      for (const g of grouped) {
+        map[g.imageIndex] = await buildPreparedImage(g);
+      }
+      setPreparedImages(map);
+    }
+    run();
+  }, [grouped]);
+
 
   /* ---------- ACTIONS ---------- */
 
@@ -127,15 +272,35 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
   }
 
   const groupedImagesForPayload = useMemo(() => {
-    return grouped.map((g) => ({
-      imageIndex: g.imageIndex,
-      compositePreview: g.signs[0]?.compositePreview || null
-    }));
-  }, [grouped]);
+    return grouped.map((g) => {
+      const first = g.signs[0] || {};
+      return {
+        imageIndex: g.imageIndex,
+        baseImage: first.baseImage || null,
+        maskImage: first.maskImage || null,
 
+        preparedPreview: preparedImages[g.imageIndex] || null,
+
+        compositePreview: first.compositePreview || null
+      };
+    });
+  }, [grouped, preparedImages]);
 
   async function handleSubmit() {
     if (!canSubmit) return;
+
+    const totalSeconds = groupedImagesForPayload.length * 120;
+    const start = Date.now();
+
+    setSubmitModalOpen(true);
+    setSubmitDone(false);
+    setSubmitProgress(0);
+
+    const interval = setInterval(() => {
+      const elapsed = (Date.now() - start) / 1000;
+      const percent = Math.min(99, Math.round((elapsed / totalSeconds) * 100));
+      setSubmitProgress(percent);
+    }, 500);
 
     const payload = ProjectReviewApi.buildProjectPayload({
       projectName: sanitizeProjectName(projectName),
@@ -148,21 +313,19 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
     });
 
     try {
-      const result = await ProjectReviewApi.processAiProject(payload);
-      console.log("AI project processed successfully:", result);
-      // opcional – limpar sessão depois do fluxo completo
-      // clearProjectAuth();
-      // opcional – callback se quiser redirecionar
-      // onGenerate?.(result);
+      await ProjectReviewApi.processAiProject(payload);
+
+      clearInterval(interval);
+      setSubmitProgress(100);
+      setSubmitDone(true);
 
     } catch (err) {
-      console.error("AI project failed:", err);
-
-      const messageError = err?.message || "Request failed";
-
-      alert(messageError); // ou trocar pelo Alert custom depois
+      clearInterval(interval);
+      alert(err.message || "Project failed");
+      setSubmitModalOpen(false);
     }
   }
+
 
 
   function handleCancelVerify() {
@@ -261,10 +424,22 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
           <input
             type="text"
             value={projectName}
-            onChange={(e) => setProjectName(e.target.value.slice(0, 30))}
+            onChange={(e) => {
+              const clean = e.target.value
+                .replace(/[^a-zA-Z0-9 _-]/g, "") // remove chars especiais
+                .replace(/\s+/g, " ")           // normaliza espaços
+                .slice(0, 30);
+
+              setProjectName(clean);
+            }}
             placeholder="My signage project"
             maxLength={30}
           />
+          {!projectNameValid && (
+            <div className="pr-help">
+              Please enter a valid project name.
+            </div>
+          )}
 
           <p className="project-name-hint">Max 30 characters.</p>
         </div>
@@ -342,15 +517,11 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
             <div className="pr-images">
               {grouped.map((imgGroup) => (
                 <div key={imgGroup.imageIndex} className="pr-image-card">
-
-                  <div className="pr-image-group">
-                    <img
-                      src={imgGroup.signs[0]?.compositePreview}
-                      alt={`Project preview ${imgGroup.imageIndex + 1}`}
-                      className="pr-composite-image"
-                    />
-                  </div>
-
+                  <img
+                    src={preparedImages[imgGroup.imageIndex]}
+                    className="pr-composite-image"
+                    alt=""
+                  />
                 </div>
               ))}
             </div>
@@ -428,6 +599,14 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
                       <div className="pr-mini-label">Artwork preview</div>
                       <div className="pr-logo-box">
                         <img src={s.logo.base64} alt="logo preview" />
+                      </div>
+                    </div>
+                  )}
+                  {s.instructions && s.instructions.trim().length > 0 && (
+                    <div className="pr-instructions" style={{fontSize:'14px'}}>
+                      <div className="pr-mini-label" style={{fontSize:'11px', marginTop:'10px'}}>Sign instructions:</div>
+                      <div className="pr-instructions-box">
+                        {s.instructions}
                       </div>
                     </div>
                   )}
@@ -509,6 +688,59 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
           </div>
         </div>
       )}
+
+      {submitModalOpen && (
+        <div className="submit-overlay">
+          <div className="submit-modal">
+
+            {!submitDone ? (
+              <>
+                <div className="submit-loader">
+                  <div className="submit-percent">{submitProgress}%</div>
+                  <div className="submit-spinner" />
+                </div>
+
+                <div className="submit-carousel">
+                  <div
+                    className="submit-carousel-track"
+                    style={{
+                      transform: `translateX(-${submitStepIndex * 100}%)`,
+                      transition: "transform 0.6s ease"
+                    }}
+                  >
+                    {SUBMIT_STEPS.map((s, i) => (
+                      <div key={i} className="submit-step">
+                        <span className="submit-icon">{s.icon}</span>
+                        <span>{s.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <CheckCircle size={72} color="#22c55e" />
+                <h2>Project sent successfully</h2>
+                <p>
+                  Project sent to email:<br />
+                  <strong>{email}</strong>
+                </p>
+
+                <button
+                  className="pr-btn pr-primary"
+                  onClick={() => {
+                    window.location.href = "/ai-4signs#";
+                  }}
+                >
+                  Done
+                </button>
+              </>
+            )}
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

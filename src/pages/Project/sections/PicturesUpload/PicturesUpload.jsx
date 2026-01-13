@@ -1,7 +1,9 @@
+import { useState } from "react";
+import { ArrowRight, Image, Move, Layers, CheckCircle, X } from "react-feather";
 import "./PicturesUpload.css";
-import { ArrowRight } from "react-feather";
 
 export default function PicturesUpload({ images, setImages, onNext }) {
+  const [showInstructions, setShowInstructions] = useState(false);
 
   function handleFiles(selectedFiles) {
     setImages((prev) => {
@@ -35,8 +37,15 @@ export default function PicturesUpload({ images, setImages, onNext }) {
 
   return (
     <div className="pictures-upload">
+      {/* TOP ACTIONS */}
       <div className="actions">
-        <button className="secondary">Instructions</button>
+        <button
+          className="secondary"
+          onClick={() => setShowInstructions(true)}
+        >
+          Instructions
+        </button>
+
         <button
           className="primary"
           disabled={images.length === 0}
@@ -45,11 +54,13 @@ export default function PicturesUpload({ images, setImages, onNext }) {
           Next <ArrowRight size={12} />
         </button>
       </div>
+
       <h2>Upload Pictures</h2>
       <p className="subtitle">
         Upload photos of where the signs will be installed.
       </p>
 
+      {/* UPLOAD AREA */}
       <div
         className="upload-box"
         onDrop={onDrop}
@@ -70,6 +81,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
         </div>
       </div>
 
+      {/* PREVIEWS */}
       {images.length > 0 && (
         <div className="preview-grid">
           {images.map((img, index) => (
@@ -86,16 +98,61 @@ export default function PicturesUpload({ images, setImages, onNext }) {
         </div>
       )}
 
-      <div className="actions">
-        <button className="secondary">Add more pictures</button>
-        <button
-          className="primary"
-          disabled={images.length === 0}
-          onClick={onNext}
+      {/* INSTRUCTIONS MODAL */}
+      {showInstructions && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowInstructions(false)}
         >
-          Next <ArrowRight size={12} />
-        </button>
-      </div>
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="modal-close"
+              onClick={() => setShowInstructions(false)}
+            >
+              <X size={16} />
+            </button>
+
+            <h1>How it works</h1>
+
+            <div className="modal-steps">
+              <div className="modal-step">
+                <Image size={22} />
+                <div>
+                  <strong>1. Upload photos</strong>
+                  <p>Use clear photos showing the full building or wall.</p>
+                </div>
+              </div>
+
+              <div className="modal-step">
+                <Move size={22} />
+                <div>
+                  <strong>2. Place sign areas</strong>
+                  <p>Mark exactly where each sign will be installed.</p>
+                </div>
+              </div>
+
+              <div className="modal-step">
+                <Layers size={22} />
+                <div>
+                  <strong>3. Choose sign types</strong>
+                  <p>Select materials, lighting, and upload logos.</p>
+                </div>
+              </div>
+
+              <div className="modal-step">
+                <CheckCircle size={22} />
+                <div>
+                  <strong>4. Review & submit</strong>
+                  <p>We generate visuals, pricing, and a proposal PDF.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

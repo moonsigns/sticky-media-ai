@@ -54,6 +54,7 @@ export default function ProjectSetup({ onGenerate }) {
                 return (
                     <PicturesSetup
                         images={images}
+                        signs={signs}   // ✅ PASS SIGNS
                         onBack={() => updateStep(STEPS.UPLOAD)}
                         onNext={(generatedSigns) => {
                             setSigns(generatedSigns);
