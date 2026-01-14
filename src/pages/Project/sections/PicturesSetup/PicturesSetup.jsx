@@ -7,13 +7,13 @@ import "./PicturesSetup.css";
 export default function PicturesSetup({ images, onNext, onBack }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [areas, setAreas] = useState({});
+  const [removalAreas, setRemovalAreas] = useState({});
   const [resizing, setResizing] = useState(null);
   const [rotating, setRotating] = useState(null);
   const [stageSizes, setStageSizes] = useState({});
   const [selectedShape, setSelectedShape] = useState(null);
 
   const copiedShapeRef = useRef(null);
-
 
   const stageImageRef = useRef(null);
   const backConfirm = useBackConfirm(onBack);
@@ -60,7 +60,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   /* ===== KEYBOARD SHORTCUTS ===== */
   useEffect(() => {
     function handleKeyDown(e) {
-      if (!selectedShape) return;
+      if (!selectedShape || selectedShape.type === "removal") return;
 
       const { imageIndex, shapeId } = selectedShape;
       const shape = areas[imageIndex]?.find(s => s.id === shapeId);
@@ -134,24 +134,51 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     }));
   }
 
-  /* ===== DRAG ===== */
-  function startDrag(e, i) {
-    if (resizing !== null || rotating !== null) return;
+  function addRemovalShape() {
+    setRemovalAreas((prev) => ({
+      ...prev,
+      [activeIndex]: [
+        ...(prev[activeIndex] || []),
+        {
+          id: crypto.randomUUID(),
+          type: "removal",
+          x: 200,
+          y: 140,
+          w: 200,
+          h: 120,
+          rotation: 0
+        }
+      ]
+    }));
+  }
 
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const shape = areas[activeIndex][i];
+  /* ===== DRAG ===== */
+  function startDrag(e, shapeId) {
+    if (resizing || rotating) return;
+
+    let lastX = e.clientX;
+    let lastY = e.clientY;
 
     function move(ev) {
-      setAreas((prev) => {
-        const copy = { ...prev };
-        copy[activeIndex] = [...copy[activeIndex]];
-        copy[activeIndex][i] = {
-          ...shape,
-          x: shape.x + (ev.clientX - startX),
-          y: shape.y + (ev.clientY - startY)
+      const dx = ev.clientX - lastX;
+      const dy = ev.clientY - lastY;
+
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+
+      setAreas(prev => {
+        const list = prev[activeIndex] || [];
+        const idx = list.findIndex(s => s.id === shapeId);
+        if (idx === -1) return prev;
+
+        const updated = [...list];
+        updated[idx] = {
+          ...updated[idx],
+          x: updated[idx].x + dx,
+          y: updated[idx].y + dy
         };
-        return copy;
+
+        return { ...prev, [activeIndex]: updated };
       });
     }
 
@@ -163,6 +190,46 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", up);
   }
+
+  function startDragRemoval(e, shapeId) {
+    if (resizing || rotating) return;
+
+    let lastX = e.clientX;
+    let lastY = e.clientY;
+
+    function move(ev) {
+      const dx = ev.clientX - lastX;
+      const dy = ev.clientY - lastY;
+
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+
+      setRemovalAreas(prev => {
+        const list = prev[activeIndex] || [];
+        const idx = list.findIndex(s => s.id === shapeId);
+        if (idx === -1) return prev;
+
+        const updated = [...list];
+        updated[idx] = {
+          ...updated[idx],
+          x: updated[idx].x + dx,
+          y: updated[idx].y + dy
+        };
+
+        return { ...prev, [activeIndex]: updated };
+      });
+    }
+
+    function up() {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    }
+
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  }
+
+
 
   /* ===== RESIZE ===== */
   function startResize(e, i) {
@@ -197,6 +264,40 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", up);
   }
+
+  function startResizeRemoval(e, i) {
+    e.stopPropagation();
+    setResizing(i);
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const shape = removalAreas[activeIndex][i];
+
+    function move(ev) {
+      setRemovalAreas((prev) => {
+        const copy = { ...prev };
+        copy[activeIndex] = [...copy[activeIndex]];
+        const MIN_SIZE = 15;
+
+        copy[activeIndex][i] = {
+          ...shape,
+          w: Math.max(MIN_SIZE, shape.w + (ev.clientX - startX)),
+          h: Math.max(MIN_SIZE, shape.h + (ev.clientY - startY))
+        };
+        return copy;
+      });
+    }
+
+    function up() {
+      setResizing(null);
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    }
+
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  }
+
 
   /* ===== ROTATE (SMOOTH) ===== */
   function startRotate(e, i) {
@@ -234,6 +335,40 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     window.addEventListener("mouseup", up);
   }
 
+  function startRotateRemoval(e, i) {
+    e.stopPropagation();
+    setRotating(i);
+
+    const startX = e.clientX;
+    const shape = removalAreas[activeIndex][i];
+    const startRotation = shape.rotation || 0;
+    const SENSITIVITY = 0.2;
+
+    function move(ev) {
+      const deltaX = ev.clientX - startX;
+      const newRotation = startRotation + deltaX * SENSITIVITY;
+
+      setRemovalAreas((prev) => {
+        const copy = { ...prev };
+        copy[activeIndex] = [...copy[activeIndex]];
+        copy[activeIndex][i] = {
+          ...copy[activeIndex][i],
+          rotation: newRotation
+        };
+        return copy;
+      });
+    }
+
+    function up() {
+      setRotating(null);
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    }
+
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  }
+
 
   /* ===== REMOVE ===== */
   function removeShape(i) {
@@ -245,9 +380,12 @@ export default function PicturesSetup({ images, onNext, onBack }) {
     });
   }
 
+
+
   /* ===== EXPORT ALL IMAGES & SIGNS (FINAL / STABLE) ===== */
   function exportAllImages(callback, signsInput = []) {
     const allSigns = [];
+    const allRemovals = {}; // ✅ new
     let processedImages = 0;
 
     images.forEach((imgObj, imageIndex) => {
@@ -346,9 +484,39 @@ export default function PicturesSetup({ images, onNext, onBack }) {
               })
             );
           }
+
         });
 
         await Promise.all(logoPromises);
+
+        /* ===== DRAW REMOVAL AREAS → PREPARED (INDEPENDENT) ===== */
+        (removalAreas?.[imageIndex] || []).forEach((r) => {
+          const cx = (r.x + r.w / 2) * scaleX;
+          const cy = (r.y + r.h / 2) * scaleY;
+          const rw = r.w * scaleX;
+          const rh = r.h * scaleY;
+
+          preparedCtx.save();
+          preparedCtx.translate(cx, cy);
+          preparedCtx.rotate((r.rotation * Math.PI) / 180);
+
+          preparedCtx.fillStyle = "rgba(255,255,255,0.85)";
+          preparedCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
+
+          preparedCtx.strokeStyle = "#b00000";
+          preparedCtx.setLineDash([8, 6]);
+          preparedCtx.lineWidth = 3;
+          preparedCtx.strokeRect(-rw / 2, -rh / 2, rw, rh);
+
+          preparedCtx.setLineDash([]);
+          preparedCtx.fillStyle = "#b00000";
+          preparedCtx.font = `${18 * scaleX}px sans-serif`;
+          preparedCtx.textAlign = "center";
+          preparedCtx.textBaseline = "middle";
+          preparedCtx.fillText("Sign to be removed", 0, 0);
+
+          preparedCtx.restore();
+        });
 
         const finalMask = maskCanvas.toDataURL("image/png");
         const finalPrepared = preparedCanvas.toDataURL("image/png");
@@ -426,14 +594,26 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           });
         });
 
+
+        // ✅ SCALE REMOVAL AREAS TO IMAGE PX (same idea as shapes)
+        const scaledRemovals = (removalAreas[imageIndex] || []).map((r) => ({
+          ...r,
+          x: r.x * scaleX,
+          y: r.y * scaleY,
+          w: r.w * scaleX,
+          h: r.h * scaleY,
+          rotation: r.rotation || 0
+        }));
+
+        allRemovals[imageIndex] = scaledRemovals;
+
         processedImages++;
         if (processedImages === images.length) {
-          callback(allSigns);
+          callback(allSigns, allRemovals);
         }
       };
     });
   }
-
 
 
   function handleNext() {
@@ -484,6 +664,13 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           <Plus size={16} /> Add Sign
         </button>
 
+        <button
+          className="add-sign-btn removal"
+          onClick={() => addRemovalShape()}
+        >
+          <Plus size={16} /> Removal area
+        </button>
+
         <div className="stage-image-wrapper">
           {images[activeIndex] && (
             <img
@@ -516,8 +703,8 @@ export default function PicturesSetup({ images, onNext, onBack }) {
 
             onMouseDown={(e) => {
               e.stopPropagation();
-              setSelectedShape({ imageIndex: activeIndex, shapeId: s.id });
-              startDrag(e, i);
+              setSelectedShape({ imageIndex: activeIndex, shapeId: s.id, type: "removal" });
+              startDrag(e, s.id);
             }}
 
           >
@@ -540,6 +727,55 @@ export default function PicturesSetup({ images, onNext, onBack }) {
             />
           </div>
         ))}
+
+        {(removalAreas[activeIndex] || []).map((s, i) => (
+          <div
+            key={s.id}
+            className="area-shape removal"
+            style={{
+              left: s.x,
+              top: s.y,
+              width: s.w,
+              height: s.h,
+              transform: `rotate(${s.rotation}deg)`
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setSelectedShape({ imageIndex: activeIndex, shapeId: s.id, type: "removal" });
+              startDragRemoval(e, s.id);
+            }}
+          >
+            <div className="removal-label">
+              Sign to be removed
+            </div>
+
+            <button
+              className="remove-shape"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => {
+                setRemovalAreas((prev) => {
+                  const copy = { ...prev };
+                  copy[activeIndex] = copy[activeIndex].filter(
+                    (_, idx) => idx !== i
+                  );
+                  return copy;
+                });
+              }}
+            >
+              ×
+            </button>
+
+            <div
+              className="resize-handle"
+              onMouseDown={(e) => startResizeRemoval(e, i)}
+            />
+            <div
+              className="rotate-handle"
+              onMouseDown={(e) => startRotateRemoval(e, i)}
+            />
+          </div>
+        ))}
+
       </div>
 
       <div className="actions">

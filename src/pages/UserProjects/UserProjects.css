@@ -1,0 +1,216 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page h1{
+  margin-top: -30px;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.email-gate {
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.email-gate input {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+}
+
+.email-gate button {
+  padding: 14px;
+  border-radius: 12px;
+  background: #000;
+  color: #fff;
+  border: none;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 28px;
+  margin-top: 40px;
+  width: 100%;
+}
+
+.project-card {
+  background: #fff;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .08);
+  transition: transform .2s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-4px);
+}
+
+.project-image img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.project-body {
+  padding: 22px;
+}
+
+.project-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 12px;
+}
+
+.status.completed {
+  color: #2ecc71;
+}
+
+.project-desc {
+  max-height: 72px;
+  font-size: 12px;
+  overflow: hidden;
+  transition: max-height .3s ease;
+}
+
+.project-desc.open {
+  max-height: 400px;
+}
+
+.see-more {
+  background: none;
+  border: none;
+  color: #007aff;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.project-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.project-actions a {
+  color: #007aff;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+/* MODAL */
+.pr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pr-modal {
+  background: #fff;
+  padding: 28px;
+  border-radius: 24px;
+  width: 420px;
+}
+
+.pr-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pr-modal-actions button {
+  padding: 10px 18px;
+  border-radius: 18px;
+  border: none;
+}
+
+.pr-modal-actions .confirm {
+  background: #000;
+  color: #fff;
+}
+
+/* --- Added data / Apple-like details --- */
+
+.project-kv {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12.5px;
+  color: #777;
+}
+
+.kv .k {
+  min-width: 72px;
+  color: #8a8a8a;
+}
+
+.kv .v {
+  text-align: right;
+  color: #666;
+}
+
+.kv .v.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  color: #6b6b6b;
+}
+
+.project-actions a {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-hint {
+  font-size: 11px;
+  color: #9a9a9a;
+  line-height: 1.1;
+}
+
+.project-id {
+  margin-top: 12px;
+  font-size: 11px;
+  color: #b0b0b0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* status colors (keep your existing completed; add a few common ones) */
+.status.completed {
+  color: #2ecc71;
+}
+
+.status.pending {
+  color: #f39c12;
+}
+
+.status.processing {
+  color: #007aff;
+}
+
+.status.failed {
+  color: #e74c3c;
+}

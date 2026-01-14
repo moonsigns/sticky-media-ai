@@ -7,7 +7,7 @@ import { saveProjectAuth, getProjectAuth, clearProjectAuth } from "../../../../u
 
 import "./ProjectReview.css";
 
-export default function ProjectReview({ signs = [], onBack, onGenerate }) {
+export default function ProjectReview({ signs = [], removalAreas = {}, onBack, onGenerate }) {
 
   /* ---------- GROUPING ---------- */
   const grouped = useMemo(() => {
@@ -34,8 +34,13 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
   const [address, setAddress] = useState("");
 
   /* ---------- STATES ---------- */
-  const [email, setEmail] = useState("");
-  const [emailTouched, setEmailTouched] = useState(false);
+  const [email, setEmail] = useState(
+    localStorage.getItem("localUserEmail") ||
+    localStorage.getItem("lastUsedEmail") ||
+    ""
+  );
+
+  // const [emailTouched, setEmailTouched] = useState(false);
   const [verified, setVerified] = useState(false);
 
   const [isSendingCode, setIsSendingCode] = useState(false);
@@ -43,6 +48,8 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
   const [code, setCode] = useState("");
 
   const [projectName, setProjectName] = useState("");
+
+  const [imgDims, setImgDims] = useState({});
 
   const backConfirm = useBackConfirm(onBack);
 
@@ -142,6 +149,39 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
         // base
         ctx.drawImage(img, 0, 0);
 
+        /* ===== REMOVAL AREAS ===== */
+        const imageIndex = imgGroup.imageIndex;
+        const removals = removalAreas?.[imageIndex] || [];
+
+        removals.forEach((r) => {
+          const { x, y, w, h, rotation = 0 } = r;
+
+          ctx.save();
+          ctx.translate(x + w / 2, y + h / 2);
+          ctx.rotate((rotation * Math.PI) / 180);
+
+          // background
+          ctx.fillStyle = "rgba(209, 10, 10, 0.76)";
+          ctx.fillRect(-w / 2, -h / 2, w, h);
+
+          // dashed border
+          ctx.strokeStyle = "#b000005d";
+          ctx.setLineDash([8, 6]);
+          ctx.lineWidth = 3;
+          ctx.strokeRect(-w / 2, -h / 2, w, h);
+          ctx.setLineDash([]);
+
+          // text
+          ctx.fillStyle = "#fff";
+          ctx.font = `bold ${Math.max(18, h * 0.18)}px system-ui`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("Sign to be removed", 0, 0);
+
+          ctx.restore();
+        });
+
+
         const logoPromises = imgGroup.signs.map((s, index) => {
           if (!s.logo?.base64 || !s.shape) return null;
 
@@ -229,7 +269,7 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
 
   async function handleSendCode() {
     if (!emailValid) {
-      setEmailTouched(true);
+      // setEmailTouched(true);
       return;
     }
 
@@ -289,7 +329,7 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
   async function handleSubmit() {
     if (!canSubmit) return;
 
-    const totalSeconds = groupedImagesForPayload.length * 120;
+    const totalSeconds = groupedImagesForPayload.length * 92;
     const start = Date.now();
 
     setSubmitModalOpen(true);
@@ -516,13 +556,73 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
 
             <div className="pr-images">
               {grouped.map((imgGroup) => (
+
                 <div key={imgGroup.imageIndex} className="pr-image-card">
-                  <img
-                    src={preparedImages[imgGroup.imageIndex]}
-                    className="pr-composite-image"
-                    alt=""
-                  />
+
+                  {/* IMAGE + OVERLAYS */}
+                  <div className="pr-image-wrapper">
+                    <img
+                      src={preparedImages[imgGroup.imageIndex]}
+                      className="pr-composite-image"
+                      alt=""
+                      onLoad={(e) => {
+                        const el = e.currentTarget;
+                        setImgDims((prev) => ({
+                          ...prev,
+                          [imgGroup.imageIndex]: {
+                            w: el.clientWidth,
+                            h: el.clientHeight,
+                            nw: el.naturalWidth,
+                            nh: el.naturalHeight
+                          }
+                        }));
+                      }}
+                    />
+
+
+                    {/* REMOVAL OVERLAYS */}
+                    {(removalAreas?.[imgGroup.imageIndex] || []).map((r) => {
+                      const d = imgDims[imgGroup.imageIndex];
+                      const sx = d ? d.w / d.nw : 1;
+                      const sy = d ? d.h / d.nh : 1;
+
+                      return (
+                        <div
+                          key={r.id}
+                          className="pr-removal-overlay"
+                          style={{
+                            left: r.x * sx,
+                            top: r.y * sy,
+                            width: r.w * sx,
+                            height: r.h * sy,
+                            transform: `rotate(${r.rotation || 0}deg)`
+                          }}
+                        >
+                          Sign to be removed
+                        </div>
+                      );
+                    })}
+
+                  </div>
+
+                  {/* REMOVAL LIST (KEEP THIS ✅) */}
+                  {removalAreas?.[imgGroup.imageIndex]?.length > 0 && (
+                    <div className="pr-removal-list">
+                      <div className="pr-removal-title">
+                        Signs to be removed
+                      </div>
+
+                      {removalAreas[imgGroup.imageIndex].map((r, idx) => (
+                        <div key={r.id} className="pr-removal-item">
+                          Removal area {idx + 1}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                 </div>
+
+
               ))}
             </div>
           </section>
@@ -603,8 +703,8 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
                     </div>
                   )}
                   {s.instructions && s.instructions.trim().length > 0 && (
-                    <div className="pr-instructions" style={{fontSize:'14px'}}>
-                      <div className="pr-mini-label" style={{fontSize:'11px', marginTop:'10px'}}>Sign instructions:</div>
+                    <div className="pr-instructions" style={{ fontSize: '14px' }}>
+                      <div className="pr-mini-label" style={{ fontSize: '11px', marginTop: '10px' }}>Sign instructions:</div>
                       <div className="pr-instructions-box">
                         {s.instructions}
                       </div>
@@ -729,7 +829,7 @@ export default function ProjectReview({ signs = [], onBack, onGenerate }) {
                 <button
                   className="pr-btn pr-primary"
                   onClick={() => {
-                    window.location.href = "/ai-4signs#";
+                    window.location.href = "/ai-4signs?page=user-projects";
                   }}
                 >
                   Done

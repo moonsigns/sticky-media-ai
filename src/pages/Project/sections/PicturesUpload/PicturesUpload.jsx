@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowRight, Image, Move, Layers, CheckCircle, X } from "react-feather";
+import howItWorksImg from "../../../../assets/how-it-works-steps-v3.png";
 import "./PicturesUpload.css";
 
 export default function PicturesUpload({ images, setImages, onNext }) {
@@ -35,10 +36,51 @@ export default function PicturesUpload({ images, setImages, onNext }) {
     handleFiles(e.dataTransfer.files);
   }
 
+  function resizeImage(file, maxWidth = 900, quality = 0.7) {
+    return new Promise((resolve) => {
+      const img = new window.Image(); // ✅ IMPORTANT FIX
+      img.src = URL.createObjectURL(file);
+
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement("canvas");
+
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(
+          (blob) => {
+            resolve(
+              new File([blob], file.name, {
+                type: "image/jpeg",
+                lastModified: Date.now()
+              })
+            );
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+    });
+  }
+
+
   return (
     <div className="pictures-upload">
       {/* TOP ACTIONS */}
+
+      <div className="steps-hero">
+        <img
+          src={howItWorksImg}
+          alt="..."
+        />
+      </div>
+
       <div className="actions">
+
         <button
           className="secondary"
           onClick={() => setShowInstructions(true)}
@@ -49,7 +91,21 @@ export default function PicturesUpload({ images, setImages, onNext }) {
         <button
           className="primary"
           disabled={images.length === 0}
-          onClick={onNext}
+          // onClick={onNext}
+          onClick={async () => {
+            const resized = await Promise.all(
+              images.map(async (img) => {
+                const resizedFile = await resizeImage(img.file);
+                return {
+                  ...img,
+                  file: resizedFile
+                };
+              })
+            );
+
+            setImages(resized);
+            onNext();
+          }}
         >
           Next <ArrowRight size={12} />
         </button>
@@ -60,6 +116,23 @@ export default function PicturesUpload({ images, setImages, onNext }) {
         Upload photos of where the signs will be installed.
       </p>
 
+      {/* PREVIEWS */}
+      {images.length > 0 && (
+        <div className="preview-grid">
+          {images.map((img, index) => (
+            <div key={index} className="preview-item">
+              <img src={img.preview} alt="preview" />
+              <button
+                className="remove-btn"
+                onClick={() => removeFile(index)}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      
       {/* UPLOAD AREA */}
       <div
         className="upload-box"
@@ -81,22 +154,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
         </div>
       </div>
 
-      {/* PREVIEWS */}
-      {images.length > 0 && (
-        <div className="preview-grid">
-          {images.map((img, index) => (
-            <div key={index} className="preview-item">
-              <img src={img.preview} alt="preview" />
-              <button
-                className="remove-btn"
-                onClick={() => removeFile(index)}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+
 
       {/* INSTRUCTIONS MODAL */}
       {showInstructions && (
@@ -116,8 +174,14 @@ export default function PicturesUpload({ images, setImages, onNext }) {
             </button>
 
             <h1>How it works</h1>
+            <div className="steps-hero-modal">
+              <img
+                src={howItWorksImg}
+                alt="..."
+              />
+            </div>
 
-            <div className="modal-steps">
+            {/* <div className="modal-steps">
               <div className="modal-step">
                 <Image size={22} />
                 <div>
@@ -149,7 +213,8 @@ export default function PicturesUpload({ images, setImages, onNext }) {
                   <p>We generate visuals, pricing, and a proposal PDF.</p>
                 </div>
               </div>
-            </div>
+            </div> */}
+
           </div>
         </div>
       )}

@@ -1,11 +1,10 @@
-import { LogOut, MessageCircle, ArrowLeft } from "react-feather";
+import { LogOut, BookOpen, ArrowLeft } from "react-feather";
 import { useTranslation } from "react-i18next";
 import "./Header.css";
 
 export default function Header({
     onLogout,
-    onAssistance,
-    // onAiKnowledge,
+    onProjects,
     onBack
 }) {
     const { t } = useTranslation();
@@ -14,9 +13,8 @@ export default function Header({
         <header className="assistant-header">
             <div className="assistant-container assistant-header-inner">
 
-                {/* Left: Back (optional) + Logo + Title */}
+                {/* Left */}
                 <div className="assistant-title">
-
                     {onBack && (
                         <button
                             className="assistant-back"
@@ -27,34 +25,24 @@ export default function Header({
                         </button>
                     )}
 
-                    <div className="assistant-logo" onClick={onBack}>H</div>
+                    <div className="assistant-logo" onClick={() => {
+                        window.location.href = "/ai-4signs";
+                    }}>H</div>
                     <h2>{t("assistant.title")}</h2>
                 </div>
 
-                {/* Right: actions */}
+                {/* Right */}
                 <div className="assistant-actions">
-
-                    {/* {onAssistance && (
+                    {onProjects && (
                         <button
                             className="assistant-action-btn"
-                            onClick={onAssistance}
-                            aria-label="Feedback"
-                        >
-                            <MessageCircle size={18} />
-                            <span>Assistant</span>
-                        </button>
-                    )} */}
-
-                    {/* {onAiKnowledge && (
-                        <button
-                            className="assistant-action-btn"
-                            onClick={onAiKnowledge}
-                            aria-label="AI Knowledge"
+                            onClick={onProjects}
+                            aria-label="My Projects"
                         >
                             <BookOpen size={18} />
-                            <span>AI Knowledge</span>
+                            <span>Projects</span>
                         </button>
-                    )} */}
+                    )}
 
                     <button
                         className="assistant-logout"

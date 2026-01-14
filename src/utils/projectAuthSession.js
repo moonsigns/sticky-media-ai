@@ -9,6 +9,8 @@ export function saveProjectAuth({ email, accessCode }) {
       savedAt: Date.now()
     })
   );
+  localStorage.setItem("localUserEmail", email);
+  localStorage.setItem("lastUsedEmail", email);
 }
 
 export function getProjectAuth() {

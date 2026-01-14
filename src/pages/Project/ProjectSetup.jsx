@@ -16,6 +16,7 @@ export default function ProjectSetup({ onGenerate }) {
     const [step, setStep] = useState(STEPS.UPLOAD);
     const [images, setImages] = useState([]);
     const [signs, setSigns] = useState([]);
+    const [removalAreas, setRemovalAreas] = useState({});
 
     useEffect(() => {
         function syncFromHash() {
@@ -56,8 +57,9 @@ export default function ProjectSetup({ onGenerate }) {
                         images={images}
                         signs={signs}   // ✅ PASS SIGNS
                         onBack={() => updateStep(STEPS.UPLOAD)}
-                        onNext={(generatedSigns) => {
+                        onNext={(generatedSigns, generatedRemovals) => {
                             setSigns(generatedSigns);
+                            setRemovalAreas(generatedRemovals || {});
                             updateStep(STEPS.SIGN);
                         }}
                     />
@@ -79,6 +81,7 @@ export default function ProjectSetup({ onGenerate }) {
                 return (
                     <ProjectReview
                         signs={signs}
+                        removalAreas={removalAreas}
                         onBack={() => updateStep(STEPS.SIGN)}
                         onGenerate={onGenerate}
                     />
