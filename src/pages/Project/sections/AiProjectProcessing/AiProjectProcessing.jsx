@@ -94,26 +94,30 @@ export default function AiProjectProcessing({ payload }) {
 
         /* ---------- AI IMAGES ---------- */
         setActiveKey("images");
-        const imgs = await ProjectReviewApi.generateAiImages({
+
+        await ProjectReviewApi.generateAiImages({
           projectId,
           payload
         });
+
         if (cancelled) return;
 
-        aiImagesResult = imgs?.aiImages || [];
+        /* ---------- WAIT FOR AI (ANTI-TIMEOUT) ---------- */
+        await ProjectReviewApi.waitForAiImages({
+          projectId,
+          expectedImages: payload.images?.length || 1,
+          maxRetries: 14
+        });
 
-        setCtx(p => ({
-          ...p,
-          aiImages: aiImagesResult
-        }));
+        if (cancelled) return;
 
         /* ---------- FINAL ---------- */
         setActiveKey("final");
         const final = await ProjectReviewApi.finalizeProject({
           projectId,
           payload,
-          aiImages: aiImagesResult,
-          aiText: aiTextResult
+          // aiImages: aiImagesResult,
+          // aiText: aiTextResult
         });
         if (cancelled) return;
 
@@ -156,20 +160,22 @@ export default function AiProjectProcessing({ payload }) {
   return (
     <div className="ai-processing">
       <div className="ai-card">
-        {canResend && (<button
-          onClick={handleResend}
-          disabled={!canResend}
-          style={{
-            marginBottom: 20,
-            backgroundColor: canResend ? "#f2d4bb" : "#eee",
-            borderRadius: "10px",
-            borderWidth: "0.1px",
-            cursor: canResend ? "pointer" : "not-allowed",
-            opacity: canResend ? 1 : 0.6
-          }}
-        >
-          Resend Project
-        </button>)}
+        {canResend && (
+          <button
+            onClick={handleResend}
+            // disabled={!canResend}
+            style={{
+              marginBottom: 20,
+              backgroundColor: canResend ? "#f2d4bb" : "#eee",
+              borderRadius: "10px",
+              borderWidth: "0.1px",
+              // cursor: canResend ? "pointer" : "not-allowed",
+              opacity: canResend ? 1 : 0.6
+            }}
+          >
+            Resend Project
+          </button>
+        )}
 
         <div className="ai-top">
           <div className={`ai-loader ${done ? "done" : ""}`} />

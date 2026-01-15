@@ -144,11 +144,56 @@ export async function generateAiImages({ projectId, payload }) {
   return data;
 }
 
-export async function finalizeProject({ projectId, payload, aiImages, aiText }) {
+export async function delayForAiCreation({ projectId, expectedImages }) {
+  const res = await fetch(`${API_BASE_URL}delay-for-ai-creation`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ projectId, expectedImages })
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.error);
+  return data;
+}
+export async function waitForAiImages({
+  projectId,
+  expectedImages,
+  maxRetries = 14
+}) {
+  let attempt = 0;
+  let result = null;
+
+  while (attempt < maxRetries) {
+    attempt++;
+
+    console.log(`[AI WAIT] Attempt ${attempt}/${maxRetries}`);
+
+    result = await delayForAiCreation({
+      projectId,
+      expectedImages
+    });
+
+    // ✅ aceita READY ou COMPLETED
+    if (result?.ready || result?.completed) {
+      console.log("[AI WAIT] Images ready");
+      return result;
+    }
+
+    console.log(
+      `[AI WAIT] Not ready (${result?.aiImagesCount || 0}/${expectedImages}), retrying...`
+    );
+  }
+
+  console.warn("[AI WAIT] Max retries reached, continuing anyway");
+  return result;
+}
+
+
+export async function finalizeProject({ projectId, payload }) {
   const res = await fetch(`${API_BASE_URL}process-ai-finalize-project`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ projectId, payload, aiImages, aiText })
+    body: JSON.stringify({ projectId, payload })
   });
 
   const data = await res.json();
@@ -167,5 +212,7 @@ export default {
   generatePrePdf,
   generateAiText,
   generateAiImages,
+  delayForAiCreation,
+  waitForAiImages,
   finalizeProject
 };
