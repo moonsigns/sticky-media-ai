@@ -18,7 +18,9 @@ export default function Header({
                     {onBack && (
                         <button
                             className="assistant-back"
-                            onClick={onBack}
+                            onClick={() => {
+                                window.location.href = "/ai-4signs";
+                            }}
                             aria-label="Back"
                         >
                             <ArrowLeft size={18} />

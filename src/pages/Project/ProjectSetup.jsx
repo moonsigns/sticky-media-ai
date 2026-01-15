@@ -3,13 +3,16 @@ import PicturesUpload from "./sections/PicturesUpload/PicturesUpload";
 import PicturesSetup from "./sections/PicturesSetup/PicturesSetup";
 import SignType from "./sections/SignType/SignType";
 import ProjectReview from "./sections/ProjectReview/ProjectReview";
+import AiProjectProcessing from "./sections/AiProjectProcessing/AiProjectProcessing";
+
 import "./ProjectSetup.css";
 
 const STEPS = {
     UPLOAD: "pictures-upload",
     SETUP: "pictures-setup",
     SIGN: "sign-type",
-    REVIEW: "review"
+    REVIEW: "review",
+    PROCESSING: "processing"
 };
 
 export default function ProjectSetup({ onGenerate }) {
@@ -17,6 +20,8 @@ export default function ProjectSetup({ onGenerate }) {
     const [images, setImages] = useState([]);
     const [signs, setSigns] = useState([]);
     const [removalAreas, setRemovalAreas] = useState({});
+
+    const [processingPayload, setProcessingPayload] = useState(null);
 
     useEffect(() => {
         function syncFromHash() {
@@ -83,8 +88,16 @@ export default function ProjectSetup({ onGenerate }) {
                         signs={signs}
                         removalAreas={removalAreas}
                         onBack={() => updateStep(STEPS.SIGN)}
-                        onGenerate={onGenerate}
+                        onGenerate={(payload) => {
+                            setProcessingPayload(payload);
+                            updateStep(STEPS.PROCESSING);
+                        }}
                     />
+                );
+
+            case STEPS.PROCESSING:
+                return (
+                    <AiProjectProcessing payload={processingPayload} />
                 );
 
             default:

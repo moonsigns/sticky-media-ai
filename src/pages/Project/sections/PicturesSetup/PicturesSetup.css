@@ -167,7 +167,7 @@
   border: none;
   font-size: 18px;
   line-height: 1;
-  cursor: move;
+  cursor: pointer;
   opacity: 0;
 }
 

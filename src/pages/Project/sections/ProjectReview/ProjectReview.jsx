@@ -65,14 +65,6 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
     addressValid &&
     projectNameValid;
 
-  const [submitModalOpen, setSubmitModalOpen] = useState(false);
-  const [submitProgress, setSubmitProgress] = useState(0);
-  const [submitDone, setSubmitDone] = useState(false);
-
-  const [activeSubmitStep, setActiveSubmitStep] = useState(0);
-
-  const [submitStepIndex, setSubmitStepIndex] = useState(0);
-
   const SUBMIT_STEPS = [
     { icon: "📄", text: "Generating Scope of Work" },
     { icon: "📐", text: "Generating estimated costs, dimensions and details" },
@@ -109,27 +101,6 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
         clearProjectAuth();
       });
   }, []);
-
-  useEffect(() => {
-    if (!submitModalOpen || submitDone) return;
-
-    const interval = setInterval(() => {
-      setActiveSubmitStep((s) => (s + 1) % SUBMIT_STEPS.length);
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [submitModalOpen, submitDone]);
-
-  useEffect(() => {
-    if (!submitModalOpen || submitDone) return;
-
-    const stepInterval = setInterval(() => {
-      setSubmitStepIndex((prev) => (prev + 1) % SUBMIT_STEPS.length);
-    }, 3500); // ⬅️ velocidade do carrossel (ajuste aqui)
-
-    return () => clearInterval(stepInterval);
-  }, [submitModalOpen, submitDone]);
-
 
   /* ===== BUILD IMAGE WITH LOGOS ===== */
   function buildPreparedImage(imgGroup) {
@@ -326,48 +297,6 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
     });
   }, [grouped, preparedImages]);
 
-  async function handleSubmit() {
-    if (!canSubmit) return;
-
-    const totalSeconds = groupedImagesForPayload.length * 92;
-    const start = Date.now();
-
-    setSubmitModalOpen(true);
-    setSubmitDone(false);
-    setSubmitProgress(0);
-
-    const interval = setInterval(() => {
-      const elapsed = (Date.now() - start) / 1000;
-      const percent = Math.min(99, Math.round((elapsed / totalSeconds) * 100));
-      setSubmitProgress(percent);
-    }, 500);
-
-    const payload = ProjectReviewApi.buildProjectPayload({
-      projectName: sanitizeProjectName(projectName),
-      signs,
-      images: groupedImagesForPayload,
-      contact: { email },
-      verified: true,
-      installationRequired,
-      address
-    });
-
-    try {
-      await ProjectReviewApi.processAiProject(payload);
-
-      clearInterval(interval);
-      setSubmitProgress(100);
-      setSubmitDone(true);
-
-    } catch (err) {
-      clearInterval(interval);
-      alert(err.message || "Project failed");
-      setSubmitModalOpen(false);
-    }
-  }
-
-
-
   function handleCancelVerify() {
     setVerifyOpen(false);
     setCode("");
@@ -394,9 +323,6 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
     return map[id] || id;
   }
 
-
-
-
   // ---------- RENDER ----------
   return (
     <div className="project-review">
@@ -409,7 +335,19 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
         <button
           className={`pr-btn pr-primary ${canSubmit ? "" : "disabled"}`}
           style={{ fontSize: '18px', fontFamily: 'system-ui' }}
-          onClick={handleSubmit}
+          onClick={() => {
+            const payload = ProjectReviewApi.buildProjectPayload({
+              projectName: sanitizeProjectName(projectName),
+              signs,
+              images: groupedImagesForPayload,
+              contact: { email },
+              verified: true,
+              installationRequired,
+              address
+            });
+
+            onGenerate(payload);
+          }}
           disabled={!canSubmit}
           title={submitHint}
         >
@@ -726,7 +664,19 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
 
         <button
           className={`pr-btn pr-primary ${canSubmit ? "" : "disabled"}`}
-          onClick={handleSubmit}
+          onClick={() => {
+            const payload = ProjectReviewApi.buildProjectPayload({
+              projectName: sanitizeProjectName(projectName),
+              signs,
+              images: groupedImagesForPayload,
+              contact: { email },
+              verified: true,
+              installationRequired,
+              address
+            });
+
+            onGenerate(payload);
+          }}
           disabled={!canSubmit}
           title={submitHint}
         >
@@ -785,58 +735,6 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
                 Confirm
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {submitModalOpen && (
-        <div className="submit-overlay">
-          <div className="submit-modal">
-
-            {!submitDone ? (
-              <>
-                <div className="submit-loader">
-                  <div className="submit-percent">{submitProgress}%</div>
-                  <div className="submit-spinner" />
-                </div>
-
-                <div className="submit-carousel">
-                  <div
-                    className="submit-carousel-track"
-                    style={{
-                      transform: `translateX(-${submitStepIndex * 100}%)`,
-                      transition: "transform 0.6s ease"
-                    }}
-                  >
-                    {SUBMIT_STEPS.map((s, i) => (
-                      <div key={i} className="submit-step">
-                        <span className="submit-icon">{s.icon}</span>
-                        <span>{s.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <CheckCircle size={72} color="#22c55e" />
-                <h2>Project sent successfully</h2>
-                <p>
-                  Project sent to email:<br />
-                  <strong>{email}</strong>
-                </p>
-
-                <button
-                  className="pr-btn pr-primary"
-                  onClick={() => {
-                    window.location.href = "/ai-4signs?page=user-projects";
-                  }}
-                >
-                  Done
-                </button>
-              </>
-            )}
-
           </div>
         </div>
       )}

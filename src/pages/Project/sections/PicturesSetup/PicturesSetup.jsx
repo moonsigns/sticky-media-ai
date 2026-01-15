@@ -124,10 +124,10 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         {
           id: crypto.randomUUID(),
           type,
-          x: 180,
+          x: 400,
           y: 120,
-          w: 180,
-          h: 180,
+          w: 130,
+          h: 100,
           rotation: 0
         }
       ]
@@ -143,9 +143,9 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           id: crypto.randomUUID(),
           type: "removal",
           x: 200,
-          y: 140,
-          w: 200,
-          h: 120,
+          y: 120,
+          w: 95,
+          h: 80,
           rotation: 0
         }
       ]

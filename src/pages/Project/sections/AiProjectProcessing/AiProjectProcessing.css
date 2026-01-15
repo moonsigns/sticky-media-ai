@@ -1,0 +1,210 @@
+/* =========================
+   PAGE WRAPPER
+========================= */
+.ai-processing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f7;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+/* =========================
+   CARD
+========================= */
+.ai-card {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 22px;
+  padding: 28px 26px 30px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* =========================
+   TOP / LOADER
+========================= */
+.ai-top {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ai-loader {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid #e5e5ea;
+  border-top-color: #0071e3;
+  animation: spin 1s linear infinite;
+  margin-top: -13px;
+}
+
+.ai-loader.done {
+  border: 3px solid #34c759;
+  animation: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ai-title h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: #1d1d1f;
+}
+
+.ai-sub {
+  margin-top: 2px;
+  font-size: 13px;
+  color: #6e6e73;
+}
+
+/* =========================
+   STEPS
+========================= */
+.ai-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.ai-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #8e8e93;
+}
+
+.ai-step .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d1d6;
+}
+
+.ai-step.active {
+  color: #1d1d1f;
+  font-weight: 500;
+}
+
+.ai-step.active .dot {
+  background: #0071e3;
+}
+
+.ai-step.done {
+  color: #34c759;
+}
+
+.ai-step.done .dot {
+  background: #34c759;
+}
+
+/* =========================
+   META INFO
+========================= */
+.ai-meta {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 14px;
+  margin-top: 16px;
+}
+
+.ai-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.ai-meta-row .k {
+  color: #6e6e73;
+}
+
+.ai-meta-row .v {
+  color: #1d1d1f;
+  font-weight: 500;
+}
+
+/* =========================
+   LINKS
+========================= */
+.ai-links {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.ai-link {
+  flex: 1;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #0071e3;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.ai-link:hover {
+  background: #005bb5;
+}
+
+.ai-link.ghost {
+  background: #f2f2f7;
+  color: #0071e3;
+}
+
+.ai-link.ghost:hover {
+  background: #e9e9ee;
+}
+
+/* =========================
+   AI TEXT PREVIEW
+========================= */
+.ai-preview {
+  margin-top: 22px;
+}
+
+.ai-preview-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6e6e73;
+  margin-bottom: 6px;
+}
+
+.ai-preview-box {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #1d1d1f;
+  background: #f5f5f7;
+  padding: 12px 14px;
+  border-radius: 12px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+/* =========================
+   ERROR
+========================= */
+.ai-error {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: #fff5f5;
+  color: #d92d20;
+  font-size: 13px;
+  border-radius: 10px;
+}
