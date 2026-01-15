@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowRight, Image, Move, Layers, CheckCircle, X } from "react-feather";
 import howItWorksImg from "../../../../assets/how-it-works-steps-v3.png";
+import InstructionsImg from "../../../../assets/how-it-works-steps-v3.png";
 import "./PicturesUpload.css";
 
 export default function PicturesUpload({ images, setImages, onNext }) {
@@ -176,7 +177,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
             <h1>How it works</h1>
             <div className="steps-hero-modal">
               <img
-                src={howItWorksImg}
+                src={InstructionsImg}
                 alt="..."
               />
             </div>
