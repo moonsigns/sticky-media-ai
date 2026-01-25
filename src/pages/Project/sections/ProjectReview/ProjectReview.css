@@ -953,7 +953,13 @@
   display: block;
 }
 
+.validate-btn {
+  font-size: 13px;
+}
 
+.input-project-name {
+  max-width: 800px;
+}
 
 
 @media (max-width: 900px) {
@@ -964,4 +970,46 @@
     margin-top: 10px;
   }
 
+  .pr-secondary {
+    background: #fff;
+    color: #000;
+    font-size: 11px;
+  }
+
+  .validate-btn {
+    font-size: 11px;
+    gap: 2px;
+    padding-inline: 10px;
+    color: #1858ce;
+    max-width: 80px;
+    border-color: #1858ce;
+  }
+
+  .input-project-name {
+    max-width: 300px;
+  }
+
+  /* Installation column tweaks */
+  .installation-col .pr-toggle {
+    margin-top: -12px;
+  }
+  .installation-col h3{
+    margin-top: -100px;
+  }
+
+}
+
+@media (max-width: 380px) {
+  .validate-btn {
+    font-size: 11px;
+    gap: 2px;
+    padding-inline: 2px;
+    color: #1858ce;
+    max-width: 80px;
+    border-color: #1858ce;
+  }
+
+  .input-project-name {
+    max-width: 250px;
+  }
 }

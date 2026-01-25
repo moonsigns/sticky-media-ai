@@ -408,7 +408,7 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
           />
 
           <button
-            className="secondary pr-btn pr-outline"
+            className="secondary pr-btn pr-outline validate-btn"
             disabled={!emailValid || verified || isSendingCode}
             onClick={handleSendCode}
           >
@@ -433,6 +433,7 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
           <input
             type="text"
             value={projectName}
+            className="input-project-name"
             onChange={(e) => {
               const clean = e.target.value
                 .replace(/[^a-zA-Z0-9 _-]/g, "") // remove chars especiais

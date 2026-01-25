@@ -4,6 +4,9 @@ import PicturesSetup from "./sections/PicturesSetup/PicturesSetup";
 import SignType from "./sections/SignType/SignType";
 import ProjectReview from "./sections/ProjectReview/ProjectReview";
 import AiProjectProcessing from "./sections/AiProjectProcessing/AiProjectProcessing";
+import PicturesSetupPhone from "./sections/PicturesSetup/PicturesSetupPhone";
+
+import useIsMobile from "../../hooks/useIsMobile";
 
 import "./ProjectSetup.css";
 
@@ -22,6 +25,8 @@ export default function ProjectSetup({ onGenerate }) {
     const [removalAreas, setRemovalAreas] = useState({});
 
     const [processingPayload, setProcessingPayload] = useState(null);
+
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         function syncFromHash() {
@@ -57,10 +62,21 @@ export default function ProjectSetup({ onGenerate }) {
                 />;
 
             case STEPS.SETUP:
-                return (
+                return isMobile ? (
+                    <PicturesSetupPhone
+                        images={images}
+                        signs={signs}
+                        onBack={() => updateStep(STEPS.UPLOAD)}
+                        onNext={(generatedSigns, generatedRemovals) => {
+                            setSigns(generatedSigns);
+                            setRemovalAreas(generatedRemovals || {});
+                            updateStep(STEPS.SIGN);
+                        }}
+                    />
+                ) : (
                     <PicturesSetup
                         images={images}
-                        signs={signs}   // ✅ PASS SIGNS
+                        signs={signs}
                         onBack={() => updateStep(STEPS.UPLOAD)}
                         onNext={(generatedSigns, generatedRemovals) => {
                             setSigns(generatedSigns);
@@ -69,6 +85,7 @@ export default function ProjectSetup({ onGenerate }) {
                         }}
                     />
                 );
+
 
             case STEPS.SIGN:
                 return (

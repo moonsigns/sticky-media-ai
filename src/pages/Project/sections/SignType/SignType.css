@@ -315,10 +315,10 @@
   cursor: pointer;
 }
 
-.logo-dropzone img {
+/* .logo-dropzone img {
   max-width: 100%;
   border-radius: 14px;
-}
+} */
 
 .logo-dropzone.disabled {
   opacity: 0.35;
@@ -334,22 +334,29 @@
   margin-top: 36px;
 }
 
-/* Wrapper vertical */
+
 .logo-and-instructions {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  width: 260px;
-  /* mesma largura do logo */
+  width: 100%;
+  max-width: 260px;
 }
 
-/* Logo dropzone (mantém o que você já tem, só refinando) */
 .logo-dropzone {
+  width: 100%;
+  min-width: 0;
+  min-height: 140px;
+  padding: 16px;
   border: 1px dashed #d2d2d7;
   border-radius: 14px;
-  padding: 16px;
-  text-align: center;
   background: #fafafa;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
@@ -357,6 +364,13 @@
   border-color: #0071e3;
   background: #f5f9ff;
 }
+
+.logo-dropzone img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 14px;
+}
+
 
 /* Instructions block */
 .sign-instructions {
@@ -374,7 +388,7 @@
 /* Apple-style textarea */
 .sign-instructions textarea {
   resize: vertical;
-  min-height: 125px;
+  min-height: 158px;
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid #d2d2d7;
