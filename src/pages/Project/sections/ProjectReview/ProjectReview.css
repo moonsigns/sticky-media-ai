@@ -74,6 +74,82 @@
   cursor: not-allowed;
 }
 
+
+
+.submit-btn {
+  position: relative;
+  padding: 14px 28px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+
+  background: linear-gradient(120deg,
+      #256aeb,
+      #3b82f6,
+      #06b6d4,
+      #3b82f6,
+      #2563eb);
+  background-size: 300% 300%;
+
+  animation: gradientFlow 6s ease infinite;
+
+  box-shadow:
+    0 10px 25px rgba(37, 99, 235, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Press feedback */
+.submit-btn:active {
+  transform: translateY(1px) scale(0.985);
+  box-shadow:
+    0 6px 18px rgba(37, 99, 235, 0.35);
+}
+
+/* Disabled */
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  animation: none;
+}
+
+.submit-btn::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(2px);
+  opacity: 0.25;
+  z-index: -1;
+  animation: gradientFlow 6s ease infinite;
+}
+
+/* Gradient animation */
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+
+
+
 /* ===== Grid ===== */
 .pr-grid {
   display: grid;
@@ -720,6 +796,52 @@
   margin-bottom: 12px;
 }
 
+.pr-sign-overlay {
+  position: absolute;
+  border: 3px solid rgba(255, 0, 0, 0.65);
+  background: rgba(255, 0, 0, 0.18);
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.pr-sign-overlay.circle {
+  border-radius: 50%;
+}
+
+/* ===== REMOVAL OVERLAY (PROJECT REVIEW) ===== */
+/* ===== REMOVAL OVERLAY – FINAL ===== */
+.pr-removal-overlay {
+  position: absolute;
+  background: rgba(209, 10, 10, 0.85);
+  border: 5px dashed #b00000;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #fff;
+  font-weight: 500;
+  text-align: center;
+
+  pointer-events: none;
+  user-select: none;
+
+  padding: 6px;
+  box-sizing: border-box;
+
+  font-size: clamp(10px, 1.05vw, 16px);
+  line-height: 1.1;
+}
+
+.pr-removal-overlay span {
+  font-size: clamp(9px, 1.05vw, 13px);
+  line-height: 1.1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+
+}
+
+
 /* Responsive */
 @media (max-width: 900px) {
   .project-top-row {
@@ -831,19 +953,6 @@
   display: block;
 }
 
-.pr-removal-overlay {
-  position: absolute;
-  border: 7px dashed #ff3a305d;
-  background: rgba(231, 47, 37, 0.877);
-  color: #fff;
-  font-weight: 700;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  border-radius: 8px;
-}
 
 
 

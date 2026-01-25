@@ -50,6 +50,8 @@ export default function UserProjects() {
     );
     const [isSendingCode, setIsSendingCode] = useState(false);
 
+    const [emailAlert, setEmailAlert] = useState(null);
+
     const emailValid = isValidEmail(email);
 
     const [cursor, setCursor] = useState(null);
@@ -88,8 +90,15 @@ export default function UserProjects() {
 
     async function handleSendCode(e) {
         e.preventDefault();
+        if (!email) {
+            setEmailAlert("Please enter your email address.");
+            setTimeout(() => setEmailAlert(null), 3000);
+            return;
+        }
+
         if (!emailValid) {
-            setEmailTouched(true);
+            setEmailAlert("That doesn’t look like a valid email.");
+            setTimeout(() => setEmailAlert(null), 3000);
             return;
         }
 
@@ -134,15 +143,20 @@ export default function UserProjects() {
             <p className="subtitle">View and manage your signage projects.</p>
 
             {!verified && (
-                <form className="email-gate" onSubmit={handleSendCode}>
-                    <label>Email address</label>
+                <form className="email-gate" onSubmit={handleSendCode} noValidate>
+
+                    {emailAlert && (
+                        <div className="apple-alert">
+                            {emailAlert}
+                        </div>
+                    )}
                     <input
                         type="email"
                         value={email}
                         placeholder="Enter your email"
                         onChange={(e) => setEmail(e.target.value)}
                     />
-                    <button disabled={!emailValid || isSendingCode}>
+                    <button disabled={isSendingCode}>
                         {isSendingCode ? "Sending…" : "View Projects"}
                     </button>
                     {emailTouched && !emailValid && (
@@ -291,14 +305,14 @@ export default function UserProjects() {
                                         </button>
                                     </>
                                 )}
-                                
+
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-            {hasMore && !loading && (
+            {verified && emailValid && projects.length > 0 && hasMore && !loading && (
                 <button
                     className="load-more"
                     onClick={() => loadProjects(email, true)}
@@ -311,6 +325,7 @@ export default function UserProjects() {
                 <div className="pr-modal-overlay">
                     <div className="pr-modal">
                         <div className="pr-modal-title">Enter verification code</div>
+                        <div className="subtitle" style={{marginTop:"0px", marginBottom:"5px"}}>It has been sent to: <strong>{email}</strong></div>
 
                         <input
                             className="pr-code"
@@ -324,7 +339,7 @@ export default function UserProjects() {
                         />
 
                         <div className="pr-modal-actions">
-                            <button className="cancel" onClick={() => setVerifyOpen(false)}>
+                            <button className="cancel" onClick={() => setVerifyOpen(false)} style={{cursor:"pointer"}}>
                                 Cancel
                             </button>
 

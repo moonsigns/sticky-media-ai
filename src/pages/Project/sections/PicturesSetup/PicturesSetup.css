@@ -177,7 +177,8 @@
 
 .add-sign-btn {
   position: absolute;
-  top: 14px;
+  top: -22px;
+
   right: 14px;
   z-index: 20;
 
@@ -216,7 +217,7 @@
 
 .removal {
   position: absolute;
-  top: 14px;
+  top: -22px;
   right: 154px;
   z-index: 20;
 
@@ -237,7 +238,7 @@
   box-shadow:
     0 6px 20px rgba(0, 0, 0, 0.233);
 
-  cursor: move;
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
@@ -248,14 +249,81 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: move;
+
+  /* 🔒 impede seleção de texto */
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 
 .removal-label {
   color: #fcfcfc;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 400;
   text-align: center;
-  pointer-events:stroke;
+
+  /* 🔒 impede seleção e interferência no drag */
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+
+  pointer-events: none;
+  /* 👈 melhor que "stroke" para drag */
+}
+
+
+.add-sign-wrapper {
+  /* position: relative; */
+  display: inline-block;
+}
+
+.add-sign-dropdown {
+
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+
+  /* padding: 10px 16px;
+  border-radius: 14px;
+  position: absolute;
+  top: 42px;
+  left: 0; */
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: dropdownFade 160ms ease-out forwards;
+  z-index: 20;
+}
+
+.add-sign-dropdown button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 14px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.add-sign-dropdown button:hover {
+  background: #f2f4f7;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 

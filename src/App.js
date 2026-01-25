@@ -76,7 +76,10 @@ export default function App() {
     <div className="app-container">
       <Header
         onLogout={handleLogout}
-        onProjects={() => setPage(PAGES.USER_PROJECTS)}
+        onProjects={() => {
+          setPage(PAGES.USER_PROJECTS);
+          window.history.pushState({}, "", "?page=user-projects");
+        }}
         onBack={page !== PAGES.PROJECT ? () => setPage(PAGES.PROJECT) : null}
       />
       {renderPage()}

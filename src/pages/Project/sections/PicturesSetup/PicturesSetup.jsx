@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, ArrowRight, Plus } from "react-feather";
+import { ArrowLeft, ArrowRight, Plus, Minimize2 } from "react-feather";
 import Alert from "../../../../components/Alert/Alert";
 import useBackConfirm from "../../../../hooks/useBackConfirm";
 import "./PicturesSetup.css";
@@ -12,6 +12,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   const [rotating, setRotating] = useState(null);
   const [stageSizes, setStageSizes] = useState({});
   const [selectedShape, setSelectedShape] = useState(null);
+  const [showAddMenu, setShowAddMenu] = useState(false);
 
   const copiedShapeRef = useRef(null);
 
@@ -100,7 +101,8 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           ...copiedShapeRef.current,
           id: crypto.randomUUID(),
           x: copiedShapeRef.current.x + 20,
-          y: copiedShapeRef.current.y + 20
+          y: copiedShapeRef.current.y + 20,
+          previewYOffset: copiedShapeRef.current.previewYOffset ?? 6.5
         };
 
         setAreas((prev) => ({
@@ -126,9 +128,10 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           type,
           x: 400,
           y: 120,
-          w: 130,
+          w: 105,
           h: 100,
-          rotation: 0
+          rotation: 0,
+          previewYOffset: 6.5
         }
       ]
     }));
@@ -146,7 +149,8 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           y: 120,
           w: 95,
           h: 80,
-          rotation: 0
+          rotation: 0,
+          previewYOffset: 6.5
         }
       ]
     }));
@@ -429,8 +433,12 @@ export default function PicturesSetup({ images, onNext, onBack }) {
 
         /* ===== DRAW ALL SHAPES ===== */
         shapes.forEach((s, shapeIndex) => {
+          // const cx = (s.x + s.w / 2) * scaleX;
+          // const cy = (s.y + s.h / 2) * scaleY;
+          const yOffset = (s.previewYOffset || 0) * scaleY;
+
           const cx = (s.x + s.w / 2) * scaleX;
-          const cy = (s.y + s.h / 2) * scaleY;
+          const cy = (s.y + s.h / 2) * scaleY - yOffset;
           const rw = s.w * scaleX;
           const rh = s.h * scaleY;
 
@@ -450,8 +458,18 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           maskCtx.translate(cx, cy);
           maskCtx.rotate((s.rotation * Math.PI) / 180);
           maskCtx.fillStyle = "#fff";
-          maskCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
+
+          if (s.type === "circle") {
+            maskCtx.beginPath();
+            maskCtx.arc(0, 0, Math.min(rw, rh) / 2, 0, Math.PI * 2);
+            maskCtx.closePath();
+            maskCtx.fill();
+          } else {
+            maskCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
+          }
+
           maskCtx.restore();
+
 
           /* --- LOGO → PREPARED --- */
           const signWithLogo = signsInput.find(
@@ -513,7 +531,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           preparedCtx.font = `${18 * scaleX}px sans-serif`;
           preparedCtx.textAlign = "center";
           preparedCtx.textBaseline = "middle";
-          preparedCtx.fillText("Sign to be removed", 0, 0);
+          preparedCtx.fillText("Removal area", 0, 0);
 
           preparedCtx.restore();
         });
@@ -538,9 +556,11 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           ctx.drawImage(img, 0, 0);
 
           ctx.save();
+          const yOffset = (s.previewYOffset || 0) * scaleY;
+
           ctx.translate(
             (s.x + s.w / 2) * scaleX,
-            (s.y + s.h / 2) * scaleY
+            (s.y + s.h / 2) * scaleY - yOffset
           );
           ctx.rotate((s.rotation * Math.PI) / 180);
           ctx.fillStyle = "rgba(220,0,0,0.25)";
@@ -571,16 +591,21 @@ export default function PicturesSetup({ images, onNext, onBack }) {
             compositePreview: finalComposite,
 
             baseImage: imgObj.preview,
+            shapeImageWidth: img.width,
+            shapeImageHeight: img.height,
+
             maskImage: finalMask,
             preparedPreview: finalPrepared,
 
             shape: {
               ...s,
+              type: s.type,
               x: s.x * scaleX,
               y: s.y * scaleY,
               w: s.w * scaleX,
               h: s.h * scaleY,
-              rotation: s.rotation || 0
+              rotation: s.rotation || 0,
+              previewYOffset: 6.5
             },
 
             signType: existing?.signType ?? null,
@@ -657,12 +682,44 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         className="stage"
         onMouseDown={() => setSelectedShape(null)}
       >
-        <button
-          className="add-sign-btn"
-          onClick={() => addShape("square")}
-        >
-          <Plus size={16} /> Add Sign
-        </button>
+        <div className="add-sign-wrapper">
+          <button
+            className="add-sign-btn"
+            onClick={() => setShowAddMenu(v => !v)}
+          >
+            {!showAddMenu ?
+              <>
+                <Plus size={16} /> Add Sign
+              </> :
+              <>
+                <Minimize2 size={16} /> Cancel
+              </>
+            }
+          </button>
+
+          {showAddMenu && (
+            <div className="add-sign-dropdown">
+              <button
+                onClick={() => {
+                  addShape("square");
+                  setShowAddMenu(false);
+                }}
+              >
+                ◼ Square
+              </button>
+
+              <button
+                onClick={() => {
+                  addShape("circle");
+                  setShowAddMenu(false);
+                }}
+              >
+                ● Circle
+              </button>
+            </div>
+          )}
+        </div>
+
 
         <button
           className="add-sign-btn removal"
@@ -703,7 +760,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
 
             onMouseDown={(e) => {
               e.stopPropagation();
-              setSelectedShape({ imageIndex: activeIndex, shapeId: s.id, type: "removal" });
+              setSelectedShape({ imageIndex: activeIndex, shapeId: s.id, type: "area" });
               startDrag(e, s.id);
             }}
 
@@ -746,7 +803,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
             }}
           >
             <div className="removal-label">
-              Sign to be removed
+              Removal area
             </div>
 
             <button

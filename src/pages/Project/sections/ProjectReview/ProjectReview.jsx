@@ -120,37 +120,44 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
         // base
         ctx.drawImage(img, 0, 0);
 
-        /* ===== REMOVAL AREAS ===== */
-        const imageIndex = imgGroup.imageIndex;
-        const removals = removalAreas?.[imageIndex] || [];
+        /* ===== REMOVAL AREAS (DRAWN INTO IMAGE) ===== */
+        const removals = removalAreas?.[imgGroup.imageIndex] || [];
 
         removals.forEach((r) => {
           const { x, y, w, h, rotation = 0 } = r;
 
+          const SCALE = 1.5;
+          const drawW = w * SCALE;
+          const drawH = h * SCALE;
+
           ctx.save();
+
+          // center + rotation
           ctx.translate(x + w / 2, y + h / 2);
           ctx.rotate((rotation * Math.PI) / 180);
 
-          // background
+          // fill
           ctx.fillStyle = "rgba(209, 10, 10, 0.76)";
-          ctx.fillRect(-w / 2, -h / 2, w, h);
+          ctx.fillRect(-drawW / 2, -drawH / 2, drawW, drawH);
 
           // dashed border
           ctx.strokeStyle = "#b000005d";
           ctx.setLineDash([8, 6]);
-          ctx.lineWidth = 3;
-          ctx.strokeRect(-w / 2, -h / 2, w, h);
+          ctx.lineWidth = 5;
+          ctx.strokeRect(-drawW / 2, -drawH / 2, drawW, drawH);
           ctx.setLineDash([]);
 
-          // text
+          // centered label (replacement for <span>Removal area</span>)
           ctx.fillStyle = "#fff";
-          ctx.font = `bold ${Math.max(18, h * 0.18)}px system-ui`;
+          ctx.font = `bold ${Math.max(16, drawH * 0.18)}px system-ui`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText("Sign to be removed", 0, 0);
+          ctx.fillText("Removal area", 0, 0);
 
           ctx.restore();
         });
+
+
 
 
         const logoPromises = imgGroup.signs.map((s, index) => {
@@ -164,8 +171,29 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
               const { x, y, w, h, rotation = 0 } = s.shape;
 
               ctx.save();
-              ctx.translate(x + w / 2, y + h / 2);
+              const yOffset = s.shape?.previewYOffset || 0;
+
+              ctx.translate(
+                x + w / 2,
+                y + h / 2 - yOffset - 15
+              );
               ctx.rotate((rotation * Math.PI) / 180);
+
+              if (s.shape.type === "circle") {
+                ctx.save();
+                const CLIP_RATIO = 1.25;
+
+                ctx.beginPath();
+                ctx.arc(
+                  0,
+                  0,
+                  (Math.min(w, h) / 2) * CLIP_RATIO,
+                  0,
+                  Math.PI * 2
+                );
+                ctx.closePath();
+                ctx.clip();
+              }
 
               // ===== LOGO =====
               const paddingRatio = 0.01;
@@ -192,6 +220,9 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
                 drawH
               );
 
+              if (s.shape.type === "circle") {
+                ctx.restore();
+              }
               // ===== INDEX BADGE =====
               const badgeRadius = Math.max(14, Math.min(w, h) * 0.12);
               const badgeX = 0;
@@ -279,7 +310,7 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
       .trim()
       .replace(/[^a-zA-Z0-9 _-]/g, "") // remove chars inválidos
       .replace(/\s+/g, " ")           // normaliza espaços
-      .slice(0, 30);
+      .slice(0, 40);
   }
 
   const groupedImagesForPayload = useMemo(() => {
@@ -333,7 +364,7 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
         </button>
 
         <button
-          className={`pr-btn pr-primary ${canSubmit ? "" : "disabled"}`}
+          className={`pr-btn pr-primary submit-btn ${canSubmit ? "" : "disabled"}`}
           style={{ fontSize: '18px', fontFamily: 'system-ui' }}
           onClick={() => {
             const payload = ProjectReviewApi.buildProjectPayload({
@@ -406,12 +437,12 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
               const clean = e.target.value
                 .replace(/[^a-zA-Z0-9 _-]/g, "") // remove chars especiais
                 .replace(/\s+/g, " ")           // normaliza espaços
-                .slice(0, 30);
+                .slice(0, 40);
 
               setProjectName(clean);
             }}
             placeholder="My signage project"
-            maxLength={30}
+            maxLength={40}
           />
           {!projectNameValid && (
             <div className="pr-help">
@@ -419,7 +450,7 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
             </div>
           )}
 
-          <p className="project-name-hint">Max 30 characters.</p>
+          <p className="project-name-hint">Max 40 characters.</p>
         </div>
 
         {/* INSTALLATION */}
@@ -497,7 +528,6 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
 
                 <div key={imgGroup.imageIndex} className="pr-image-card">
 
-                  {/* IMAGE + OVERLAYS */}
                   <div className="pr-image-wrapper">
                     <img
                       src={preparedImages[imgGroup.imageIndex]}
@@ -517,37 +547,13 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
                       }}
                     />
 
-
-                    {/* REMOVAL OVERLAYS */}
-                    {(removalAreas?.[imgGroup.imageIndex] || []).map((r) => {
-                      const d = imgDims[imgGroup.imageIndex];
-                      const sx = d ? d.w / d.nw : 1;
-                      const sy = d ? d.h / d.nh : 1;
-
-                      return (
-                        <div
-                          key={r.id}
-                          className="pr-removal-overlay"
-                          style={{
-                            left: r.x * sx,
-                            top: r.y * sy,
-                            width: r.w * sx,
-                            height: r.h * sy,
-                            transform: `rotate(${r.rotation || 0}deg)`
-                          }}
-                        >
-                          Sign to be removed
-                        </div>
-                      );
-                    })}
-
                   </div>
 
                   {/* REMOVAL LIST (KEEP THIS ✅) */}
                   {removalAreas?.[imgGroup.imageIndex]?.length > 0 && (
                     <div className="pr-removal-list">
                       <div className="pr-removal-title">
-                        Signs to be removed
+                        Removal area
                       </div>
 
                       {removalAreas[imgGroup.imageIndex].map((r, idx) => (
@@ -663,7 +669,7 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
         </button>
 
         <button
-          className={`pr-btn pr-primary ${canSubmit ? "" : "disabled"}`}
+          className={`pr-btn pr-primary submit-btn ${canSubmit ? "" : "disabled"}`}
           onClick={() => {
             const payload = ProjectReviewApi.buildProjectPayload({
               projectName: sanitizeProjectName(projectName),

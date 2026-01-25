@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, ArrowRight } from "react-feather";
 import Alert from "../../../../components/Alert/Alert";
 import useBackConfirm from "../../../../hooks/useBackConfirm";
@@ -44,10 +44,78 @@ const SIGN_CATEGORIES = [
   }
 ];
 
+const INSTRUCTION_SNIPPETS = {
+  signType: {
+    channel:
+      'Channel letters are individual 3D dimensional letters, typically face-lit with internal LED illumination. Each letter is fabricated separately and mounted directly to the wall (or onto a backing system if specified as "Additional" on this text). The letter returns (sides) are 3.5in and can be finished in black, white, or matched to the logo color.',
+
+    neon:
+      'Custom flex neon sign, color as per logo, with uniform LED illumination and clear acrylic backing.',
+
+    alumCut:
+      'Flat cut 3D aluminum letters. Non-illuminated, flush mounted or with 1/2in spacers.',
+
+    acrylic3D:
+      '3D acrylic letters, dimensional and premium finish. Usually painted as per logo color. Flush mount or with 1/2in spacers.',
+
+    pvc:
+      'PVC cut 3D letters. Flat, non-illuminated sign, flush mounted or with 1/2in spacers.',
+
+    lightbox:
+      'Illuminated light box with flat translucent acrylic face (with graphics) and internal LED modules. Cabinet is 6in thick.',
+
+    push:
+      'Push-through sign with 6in thich aluminum cabinet. Only the 3D acrylic elements are face-lit. No wall light propagation. Similar to a light box, but the aluminum face is not illuminated.',
+
+    blade:
+      'A blade sign is a rigid sign mounted perpendicular to a wall, projecting outward so it is visible from both directions along a sidewalk. It is double-sided, supported by brackets or a frame, and used for high visibility to pedestrian traffic.',
+
+    pylon:
+      'A pylon sign is a freestanding ground-mounted sign supported by one or more vertical poles or a solid base. It is designed for long-distance visibility, typically installed near roads or entrances, and can be illuminated or non-illuminated.',
+
+    film:
+      'Flat, non-illuminated vinyl / printed graphics. Not a 3D sign. Usually installed onto windows or walls.',
+
+    banner:
+      'Printed banner. Flat, non-illuminated signage solution.',
+
+    printMat:
+      'Printed graphics mounted on ACM / aluminum panel. Flat, non-illuminated.',
+
+    acrylicFace:
+      'Printed graphics applied to acrylic face. Flat, non-illuminated. It can be used to replace Pylon of light box faces.',
+
+    other:
+      'Custom sign solution. Details to be defined.'
+  },
+
+  addition: {
+    "Backer Panel":
+      'Additional: Sign elements mounted onto a solid 2-inch-thick backer panel. The backer panel is always larger than the mounted elements, creating a unified background and improved wall protection. Typically painted to match the wall color, while remaining visible.',
+
+    "Carrier Box":
+      'Additional: Sign elements mounted onto a 2-inch-thick carrier box. Carrier boxes are typically shorter in height than the mounted elements, allowing letters or shapes to extend beyond the box for a dimensional look. Typically painted to match the wall color, while remaining visible.',
+
+    "Rails":
+      'Additional: 1.5-inch × 1.5-inch aluminum rails installed behind the sign for spaced mounting. Rails are painted to match the wall color but remain visible. This is not a backer panel and visually resembles a structural frame. Typically painted to match the wall color, while remaining visible.'
+  }
+  ,
+
+  nonIlluminated:
+    'NON-ILLUMINATED SIGN.',
+
+  illuminated:
+    "ILLUMINATED SIGN."
+};
+
+
 export default function SignType({ signs = [], onNext, onBack }) {
+  const imageRefs = useRef({});
+  const [, forceRender] = useState(0);
   const [data, setData] = useState(
     signs.map((s) => ({
       ...s,
+      shapeType: s.shape?.type || "square",
       illuminated: s.illuminated ?? true,
       width: s.width || "",
       height: s.height || "",
@@ -56,7 +124,7 @@ export default function SignType({ signs = [], onNext, onBack }) {
       openCategory: null,
       openDetails: false,
       addition: s.addition || null,
-      instructions: s.instructions || ""
+      instructions: s.instructions || INSTRUCTION_SNIPPETS.illuminated
     }))
   );
 
@@ -82,6 +150,52 @@ export default function SignType({ signs = [], onNext, onBack }) {
     });
   }
 
+  function appendInstruction(index, text) {
+    if (!text) return;
+
+    setData((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) return s;
+
+        const current = s.instructions || "";
+
+        // evita duplicar
+        if (current.includes(text)) return s;
+
+        return {
+          ...s,
+          instructions: current
+            ? `${current.trim()}\n\n${text}`
+            : text
+        };
+      })
+    );
+  }
+
+  function removeInstruction(index, text) {
+    if (!text) return;
+
+    setData((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) return s;
+
+        const current = s.instructions || "";
+        if (!current.includes(text)) return s;
+
+        const cleaned = current
+          .replace(text, "")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+
+        return {
+          ...s,
+          instructions: cleaned
+        };
+      })
+    );
+  }
+
+
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -105,13 +219,33 @@ export default function SignType({ signs = [], onNext, onBack }) {
       <div className="sign-cards">
         {data.map((sign, index) => (
           <div key={index} className={`sign-card ${sign.aiMode ? "ai-active" : ""}`}>
+
             {/* Preview */}
             <div className="sign-preview">
-              <img
-                src={sign.preview}
-                alt=""
-              />
+              <div className="image-wrapper">
+                <img
+                  ref={(el) => (imageRefs.current[index] = el)}
+                  src={sign.baseImage}
+                  alt=""
+                  onLoad={() => forceRender(v => v + 1)}
+                />
+
+                {imageRefs.current[index] && (
+                  <div
+                    className={`shape-overlay ${sign.shape.type}`}
+                    style={{
+                      left: `${((sign.shape.x + sign.shape.w / 2) / sign.shapeImageWidth) * imageRefs.current[index].offsetWidth}px`,
+                      top: `${((sign.shape.y + sign.shape.h / 2) / sign.shapeImageHeight) * imageRefs.current[index].offsetHeight - (sign.shape.previewYOffset || 0)}px`,
+                      width: `${(sign.shape.w / sign.shapeImageWidth) * imageRefs.current[index].offsetWidth}px`,
+                      height: `${(sign.shape.h / sign.shapeImageHeight) * imageRefs.current[index].offsetHeight}px`,
+                      transform: `translate(-50%, -50%) rotate(${sign.shape.rotation}deg)`,
+                      transformOrigin: "center"
+                    }}
+                  />
+                )}
+              </div>
             </div>
+
 
             {/* Config */}
             <div className="sign-config">
@@ -146,7 +280,24 @@ export default function SignType({ signs = [], onNext, onBack }) {
                         <button
                           key={item.id}
                           className={`type-btn ${sign.signType === item.id ? "active" : ""}`}
-                          onClick={() => updateSign(index, { signType: item.id })}
+                          onClick={() => {
+                            const prevType = sign.signType;
+
+                            updateSign(index, { signType: item.id });
+
+                            if (prevType && prevType !== item.id) {
+                              removeInstruction(
+                                index,
+                                INSTRUCTION_SNIPPETS.signType[prevType]
+                              );
+                            }
+
+                            appendInstruction(
+                              index,
+                              INSTRUCTION_SNIPPETS.signType[item.id]
+                            );
+                          }}
+
                         >
                           {item.label}
                         </button>
@@ -159,16 +310,27 @@ export default function SignType({ signs = [], onNext, onBack }) {
                 <div className="illumination">
                   <button
                     className={`illum-btn ${sign.illuminated ? "active" : ""}`}
-                    onClick={() => updateSign(index, { illuminated: true })}
+                    onClick={() => {
+                      updateSign(index, { illuminated: true });
+
+                      removeInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
+                      appendInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
+                    }}
                   >
                     Illuminated
                   </button>
                   <button
                     className={`illum-btn ${!sign.illuminated ? "active" : ""}`}
-                    onClick={() => updateSign(index, { illuminated: false })}
+                    onClick={() => {
+                      updateSign(index, { illuminated: false });
+
+                      removeInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
+                      appendInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
+                    }}
                   >
                     Non-illuminated
                   </button>
+
                 </div>
               )}
 
@@ -208,11 +370,28 @@ export default function SignType({ signs = [], onNext, onBack }) {
                           <button
                             key={opt}
                             className={`addition-btn ${sign.addition === opt ? "active" : ""}`}
-                            onClick={() =>
-                              updateSign(index, {
-                                addition: sign.addition === opt ? null : opt
-                              })
-                            }
+                            onClick={() => {
+                              const next = sign.addition === opt ? null : opt;
+
+                              // remove previous
+                              if (sign.addition) {
+                                removeInstruction(
+                                  index,
+                                  INSTRUCTION_SNIPPETS.addition[sign.addition]
+                                );
+                              }
+
+                              updateSign(index, { addition: next });
+
+                              // add new
+                              if (next) {
+                                appendInstruction(
+                                  index,
+                                  INSTRUCTION_SNIPPETS.addition[next]
+                                );
+                              }
+
+                            }}
                           >
                             {opt}
                           </button>
