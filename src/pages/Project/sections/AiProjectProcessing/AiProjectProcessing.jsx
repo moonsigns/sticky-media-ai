@@ -4,10 +4,10 @@ import "./AiProjectProcessing.css";
 
 const STEPS = [
   { key: "init", label: "Creating project" },
-  { key: "pre", label: "Generating setup PDF" },
+  { key: "pre", label: "Generating setup PDF | SOW" },
   { key: "text", label: "Generating AI description" },
   { key: "images", label: "Generating AI renders" },
-  { key: "final", label: "Finalizing project & email" }
+  { key: "final", label: "Finalizing project | Sending email" }
 ];
 
 export default function AiProjectProcessing({ payload }) {
@@ -106,7 +106,7 @@ export default function AiProjectProcessing({ payload }) {
         await ProjectReviewApi.waitForAiImages({
           projectId,
           expectedImages: payload.images?.length || 1,
-          maxRetries: 14
+          maxRetries: 24
         });
 
         if (cancelled) return;
@@ -126,6 +126,8 @@ export default function AiProjectProcessing({ payload }) {
           project: final || null,
           postPdfUrl: final?.postPdfUrl || p.postPdfUrl
         }));
+
+
       } catch (err) {
         if (!cancelled) {
           setError(err?.message || "Process failed");

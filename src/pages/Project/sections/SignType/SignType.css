@@ -283,6 +283,7 @@
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-bottom: 10px;
 }
 
 .addition-btn.active {
@@ -417,21 +418,22 @@
   display: inline-block;
   line-height: 0;
 }
+
 .image-wrapper img {
   display: block;
 }
 
 .shape-overlay {
   position: absolute;
-    will-change: transform;
-  border: 2px solid #d00;
   background: rgba(220, 0, 0, 0.25);
-  pointer-events: none;
+  border: 2px solid #d00;
   box-sizing: border-box;
 }
 
 .shape-overlay.circle {
   border-radius: 50%;
+  border: 2px solid #d00;
+  transform: translateY(-10px);
 }
 
 

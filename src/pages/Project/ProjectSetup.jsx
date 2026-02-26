@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import PicturesUpload from "./sections/PicturesUpload/PicturesUpload";
-import PicturesSetup from "./sections/PicturesSetup/PicturesSetup";
+import PicturesSetup from "./sections/PicturesSetupV2/PicturesSetup";
 import SignType from "./sections/SignType/SignType";
-import ProjectReview from "./sections/ProjectReview/ProjectReview";
+import ProjectReview from "./sections/ProjectReviewV2/ProjectReview";
 import AiProjectProcessing from "./sections/AiProjectProcessing/AiProjectProcessing";
 import PicturesSetupPhone from "./sections/PicturesSetup/PicturesSetupPhone";
 

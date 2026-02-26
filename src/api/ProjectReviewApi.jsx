@@ -36,8 +36,8 @@ export async function confirmVerificationCode(email, code) {
   }
   return data.user;
 }
-/* ---------------- PAYLOAD ---------------- */
 
+/* ---------------- PAYLOAD ---------------- */
 export function buildProjectPayload({
   projectName,
   signs,
@@ -45,41 +45,75 @@ export function buildProjectPayload({
   contact,
   verified,
   installationRequired,
-  address
+  address,
+  removalAreas = {}
 }) {
   return {
-    projectName,
+    projectName: projectName || "",
+
     contact: {
       email: contact?.email || "",
       verified: Boolean(verified)
     },
+
+    /* ===== IMAGES (CLEAN V2) ===== */
     images: (images || []).map(img => ({
       imageIndex: Number(img.imageIndex),
-      baseImage: typeof img.baseImage === "string" ? img.baseImage : null,
-      maskImage: typeof img.maskImage === "string" ? img.maskImage : null,
-      preparedPreview:
-        typeof img.preparedPreview === "string" ? img.preparedPreview : null,
+      baseImage:
+        typeof img.baseImage === "string" ? img.baseImage : null,
+      maskImage:
+        typeof img.maskImage === "string" ? img.maskImage : null,
       compositePreview:
-        typeof img.compositePreview === "string" ? img.compositePreview : null
+        typeof img.compositePreview === "string" ? img.compositePreview : null,
+      removalAreas: Array.isArray(img.removalAreas)
+        ? img.removalAreas
+        : []
     })),
+
+    /* ===== REMOVAL AREAS ===== */
+    removalAreas: removalAreas || {},
+
     installation: {
       required: Boolean(installationRequired),
       address: installationRequired ? address || "" : ""
     },
+
+    /* ===== SIGNS ===== */
     signs: (signs || []).map(s => ({
       id: s.id ?? null,
-      imageIndex: Number.isFinite(s.imageIndex) ? s.imageIndex : 0,
-      shapeIndex: Number.isFinite(s.shapeIndex) ? s.shapeIndex : 0,
+
+      imageIndex:
+        Number.isFinite(s.imageIndex) ? s.imageIndex : 0,
+
+      shapeIndex:
+        Number.isFinite(s.shapeIndex) ? s.shapeIndex : 0,
+
       label: s.label ?? null,
       signType: s.signType ?? null,
+
       illuminated: Boolean(s.illuminated),
-      width: s.width ?? null,
-      height: s.height ?? null,
+
+      width:
+        s.width && Number(s.width) > 0
+          ? Number(s.width)
+          : null,
+
+      height:
+        s.height && Number(s.height) > 0
+          ? Number(s.height)
+          : null,
+
       estimateWithAI: Boolean(s.estimateWithAI),
       addition: s.addition ?? null,
       aiMode: Boolean(s.aiMode),
-      logo: typeof s.logo?.base64 === "string" ? s.logo.base64 : null,
-      preview: typeof s.preview === "string" ? s.preview : null,
+
+      /* logo now clean base64 only */
+      logo:
+        typeof s.logo?.base64 === "string"
+          ? s.logo.base64
+          : null,
+
+      /* shape clean */
       shape: s.shape
         ? {
           x: Number(s.shape.x),
@@ -89,6 +123,7 @@ export function buildProjectPayload({
           rotation: Number(s.shape.rotation ?? 0)
         }
         : null,
+
       instructions: s.instructions ?? ""
     }))
   };
@@ -158,7 +193,7 @@ export async function delayForAiCreation({ projectId, expectedImages }) {
 export async function waitForAiImages({
   projectId,
   expectedImages,
-  maxRetries = 14
+  maxRetries = 24
 }) {
   let attempt = 0;
   let result = null;

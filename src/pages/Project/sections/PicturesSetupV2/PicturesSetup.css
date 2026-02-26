@@ -1,0 +1,341 @@
+.pictures-setup {
+  max-width: 1000px;
+  margin: 60px auto;
+  text-align: center;
+}
+
+.studio-header h2 {
+  font-size: 26px;
+  font-weight: 600;
+  margin-top: -40px;
+}
+
+.studio-header p {
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.thumbs {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.thumbs img {
+  width: 150px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  opacity: 0.4;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.thumbs img.active {
+  opacity: 1;
+  border-color: #000;
+}
+
+.stage {
+  position: relative;
+  margin: 0 auto 24px;
+  max-width: 900px;
+}
+
+.stage-image {
+  width: 100%;
+  border-radius: 16px;
+}
+
+.area-shape.circle {
+  border-radius: 50%;
+}
+
+/* ===== SHAPES ===== */
+.area-shape {
+  position: absolute;
+  cursor: move;
+  z-index: 3;
+}
+
+/* ===== SQUARE ===== */
+.area-shape.square {
+  border: 2px solid #d00;
+  background: rgba(220, 0, 0, 0.25);
+  border-radius: 6px;
+}
+
+/* ===== CIRCLE ===== */
+.area-shape.circle {
+  border: 2px solid #d00;
+  background: rgba(220, 0, 0, 0.25);
+  border-radius: 50%;
+}
+
+.shape-label {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 22px;
+  height: 22px;
+  background: #000;
+  color: #fff;
+  font-size: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ===== TOOLS ===== */
+
+.studio-tools {
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.studio-tools button {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.area-shape:active {
+  cursor: grabbing;
+}
+
+.resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  right: -6px;
+  bottom: -6px;
+  background: #fff;
+  border: 2px solid #d00;
+  border-radius: 50%;
+  cursor: se-resize;
+}
+
+.rotate-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 2px solid #d00;
+  border-radius: 50%;
+  cursor: grab;
+}
+
+.stage-image-wrapper {
+  position: relative;
+}
+
+.stage-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Garante que a imagem nunca seja selecionada */
+.stage-image {
+  user-select: none;
+  pointer-events: none;
+}
+
+.remove-shape {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #00000071;
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.area-shape:hover .remove-shape {
+  opacity: 1;
+}
+
+.add-sign-btn {
+  position: absolute;
+  top: -22px;
+
+  right: 14px;
+  z-index: 20;
+
+  padding: 10px 16px;
+  border-radius: 14px;
+
+  font-size: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 600;
+
+  color: #111;
+  background: rgba(255, 255, 255, 0.548);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.233);
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.add-sign-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+.add-sign-btn:active {
+  transform: translateY(0);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.removal {
+  position: absolute;
+  top: -22px;
+  right: 154px;
+  z-index: 20;
+
+  padding: 10px 16px;
+  border-radius: 14px;
+
+  font-size: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 600;
+
+  color: #771818;
+  background: rgba(250, 191, 191, 0.342);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.233);
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* ===== REMOVAL AREA ===== */
+.area-shape.removal {
+  background: rgba(253, 2, 2, 0.534);
+  border: 2px dashed #ff4d4f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: move;
+
+  /* 🔒 impede seleção de texto */
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+.removal-label {
+  color: #fcfcfc;
+  font-size: 12px;
+  font-weight: 400;
+  text-align: center;
+
+  /* 🔒 impede seleção e interferência no drag */
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+
+  pointer-events: none;
+  /* 👈 melhor que "stroke" para drag */
+}
+
+
+.add-sign-wrapper {
+  /* position: relative; */
+  display: inline-block;
+}
+
+.add-sign-dropdown {
+
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+
+  /* padding: 10px 16px;
+  border-radius: 14px;
+  position: absolute;
+  top: 42px;
+  left: 0; */
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: dropdownFade 160ms ease-out forwards;
+  z-index: 20;
+}
+
+.add-sign-dropdown button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 14px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.add-sign-dropdown button:hover {
+  background: #f2f4f7;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+@media (max-width: 900px) {
+
+  .studio-header h2 {
+    font-size: 20px;
+    font-weight: 500;
+    margin-top: 10px;
+  }
+
+}

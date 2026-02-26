@@ -37,11 +37,11 @@ const SIGN_CATEGORIES = [
       { id: "acrylicFace", label: "Acrylic + Graphics" }
     ]
   },
-  {
-    id: "other",
-    label: "Other",
-    items: [{ id: "other", label: "Other type" }]
-  }
+  // {
+  //   id: "other",
+  //   label: "Other",
+  //   items: [{ id: "other", label: "Other type" }]
+  // }
 ];
 
 const INSTRUCTION_SNIPPETS = {
@@ -128,9 +128,29 @@ export default function SignType({ signs = [], onNext, onBack }) {
     }))
   );
 
+
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, []);
+
+  useEffect(() => {
+    const observers = [];
+
+    Object.values(imageRefs.current).forEach((img) => {
+      if (!img) return;
+
+      const observer = new ResizeObserver(() => {
+        forceRender(v => v + 1);
+      });
+
+      observer.observe(img);
+      observers.push(observer);
+    });
+
+    return () => {
+      observers.forEach(o => o.disconnect());
+    };
+  }, [data]);
 
   const backConfirm = useBackConfirm(onBack);
 
@@ -230,19 +250,43 @@ export default function SignType({ signs = [], onNext, onBack }) {
                   onLoad={() => forceRender(v => v + 1)}
                 />
 
-                {imageRefs.current[index] && (
-                  <div
-                    className={`shape-overlay ${sign.shape.type}`}
-                    style={{
-                      left: `${((sign.shape.x + sign.shape.w / 2) / sign.shapeImageWidth) * imageRefs.current[index].offsetWidth}px`,
-                      top: `${((sign.shape.y + sign.shape.h / 2) / sign.shapeImageHeight) * imageRefs.current[index].offsetHeight - (sign.shape.previewYOffset || 0)}px`,
-                      width: `${(sign.shape.w / sign.shapeImageWidth) * imageRefs.current[index].offsetWidth}px`,
-                      height: `${(sign.shape.h / sign.shapeImageHeight) * imageRefs.current[index].offsetHeight}px`,
-                      transform: `translate(-50%, -50%) rotate(${sign.shape.rotation}deg)`,
-                      transformOrigin: "center"
-                    }}
-                  />
-                )}
+                {imageRefs.current[index] && (() => {
+                  // const imageWidth = imageRefs.current[index].offsetWidth;
+                  // const imageHeight = imageRefs.current[index].offsetHeight;
+
+                  const rect = imageRefs.current[index].getBoundingClientRect();
+                  const imageWidth = rect.width;
+                  const imageHeight = rect.height;
+
+                  const scaleX = imageWidth / sign.shapeImageWidth;
+                  const scaleY = imageHeight / sign.shapeImageHeight;
+
+                  const isCircle = sign.shape?.type === "circle";
+
+                  const width = sign.shape.w * scaleX;
+                  const height = sign.shape.h * scaleY;
+
+                  console.log("SIGN BASE IMAGE CHECK:", {
+                    index,
+                    isBase64: sign.baseImage?.startsWith("data:image"),
+                    preview: sign.baseImage?.slice(0, 30)
+                  });
+
+                  return (
+                    <div
+                      className={`shape-overlay ${isCircle ? "circle" : "square"}`}
+                      style={{
+                        left: `${sign.shape.x * scaleX}px`,
+                        top: `${sign.shape.y * scaleY}px`,
+                        width: `${sign.shape.w * scaleX}px`,
+                        height: `${sign.shape.h * scaleY}px`,
+                        transform: `${isCircle ? "translateY(-8px) " : "translateY(-4px)"}rotate(${sign.shape.rotation}deg)`,
+                        transformOrigin: "top left"
+                      }}
+                    />
+                  );
+                })()}
+
               </div>
             </div>
 
@@ -255,10 +299,44 @@ export default function SignType({ signs = [], onNext, onBack }) {
                   className={`ai-btn ${sign.aiMode ? "active" : ""}`}
                   onClick={() => updateSign(index, { aiMode: !sign.aiMode })}
                 >
-                  ✨ Generate with AI
+                  ✨ Create sign with AI
                 </button>
               </div>
-              <p style={{ color: '#a8a8a8ff', marginTop: '-30px', fontSize: '12px' }}>Select the type of sign</p>
+
+              {!sign.aiMode &&
+                <div className="dimensions" style={{ marginTop: '-10px', fontSize: '12px' }}>
+                  <input
+                    type="number"
+                    placeholder="Width (in)"
+                    value={sign.width}
+                    onChange={(e) => setDimension(index, "width", e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Height (in)"
+                    value={sign.height}
+                    onChange={(e) => setDimension(index, "height", e.target.value)}
+                  />
+                  <button
+                    className={`ai-dim-btn ${sign.estimateWithAI ? "active" : ""}`}
+                    onClick={() => updateSign(index, { estimateWithAI: true })}
+                  >
+                    <strong><ArrowRight size={12} style={{ marginBottom: "-1px" }} /></strong> Dimensions by AI
+                  </button>
+                </div>
+              }
+
+              <hr
+                style={{
+                  border: "none",
+                  height: "2.5px",
+                  background: "linear-gradient(to right, #e5e7eb98, #d8d8d8, #e5e7eb98)",
+                  margin: "0px 0",
+                  borderRadius: "2px"
+                }}
+              />
+
+              <p style={{ color: '#a8a8a8ff', marginTop: '10px', fontSize: '12px' }}>Select the type of sign:</p>
 
               {!sign.aiMode &&
                 SIGN_CATEGORIES.map((cat) => (
@@ -334,6 +412,7 @@ export default function SignType({ signs = [], onNext, onBack }) {
                 </div>
               )}
 
+
               {!sign.aiMode && (
                 <div className="details-toggle">
                   <button onClick={() => updateSign(index, { openDetails: !sign.openDetails })}>
@@ -342,26 +421,7 @@ export default function SignType({ signs = [], onNext, onBack }) {
                   </button>
 
                   <div className={`details-panel ${sign.openDetails ? "open" : ""}`}>
-                    <div className="dimensions">
-                      <input
-                        type="number"
-                        placeholder="Width (in)"
-                        value={sign.width}
-                        onChange={(e) => setDimension(index, "width", e.target.value)}
-                      />
-                      <input
-                        type="number"
-                        placeholder="Height (in)"
-                        value={sign.height}
-                        onChange={(e) => setDimension(index, "height", e.target.value)}
-                      />
-                      <button
-                        className={`ai-dim-btn ${sign.estimateWithAI ? "active" : ""}`}
-                        onClick={() => updateSign(index, { estimateWithAI: true })}
-                      >
-                        Estimate with AI
-                      </button>
-                    </div>
+
 
                     <div className="additions">
                       <span>Add components (optional)</span>

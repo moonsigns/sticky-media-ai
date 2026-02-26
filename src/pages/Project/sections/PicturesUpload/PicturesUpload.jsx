@@ -182,40 +182,6 @@ export default function PicturesUpload({ images, setImages, onNext }) {
               />
             </div>
 
-            {/* <div className="modal-steps">
-              <div className="modal-step">
-                <Image size={22} />
-                <div>
-                  <strong>1. Upload photos</strong>
-                  <p>Use clear photos showing the full building or wall.</p>
-                </div>
-              </div>
-
-              <div className="modal-step">
-                <Move size={22} />
-                <div>
-                  <strong>2. Place sign areas</strong>
-                  <p>Mark exactly where each sign will be installed.</p>
-                </div>
-              </div>
-
-              <div className="modal-step">
-                <Layers size={22} />
-                <div>
-                  <strong>3. Choose sign types</strong>
-                  <p>Select materials, lighting, and upload logos.</p>
-                </div>
-              </div>
-
-              <div className="modal-step">
-                <CheckCircle size={22} />
-                <div>
-                  <strong>4. Review & submit</strong>
-                  <p>We generate visuals, pricing, and a proposal PDF.</p>
-                </div>
-              </div>
-            </div> */}
-
           </div>
         </div>
       )}
