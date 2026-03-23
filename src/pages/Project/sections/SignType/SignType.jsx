@@ -216,6 +216,38 @@ export default function SignType({ signs = [], onNext, onBack }) {
   }
 
 
+  async function compressImage(file, maxWidth = 500, quality = 0.6) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(
+          (blob) => {
+            resolve(
+              new File([blob], file.name, {
+                type: "image/jpeg",
+                lastModified: Date.now()
+              })
+            );
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+    });
+  }
+
+
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -468,21 +500,28 @@ export default function SignType({ signs = [], onNext, onBack }) {
               <div className={`logo-dropzone ${sign.aiMode ? "disabled" : ""}`}>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/png, image/jpeg"
                   disabled={sign.aiMode}
                   onChange={async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
 
-                    const base64 = await fileToBase64(file);
+                    if (!["image/png", "image/jpeg"].includes(file.type)) {
+                      alert("Only PNG and JPG logos are allowed.");
+                      return;
+                    }
+
+                    const compressed = await compressImage(file);
+                    const base64 = await fileToBase64(compressed);
 
                     updateSign(index, {
                       logo: {
                         name: file.name,
-                        type: file.type,
+                        type: "image/jpeg",
                         base64
                       }
                     });
+
                   }}
                 />
 

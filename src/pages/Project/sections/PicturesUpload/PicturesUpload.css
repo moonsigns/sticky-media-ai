@@ -231,6 +231,29 @@
   display: block;
 }
 
+
+.modal-card.apple {
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 320px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-card.apple h3 {
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.modal-card.apple p {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 16px;
+}
+
+
 @media (max-width: 900px) {
 
   .pictures-upload h2 {

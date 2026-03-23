@@ -13,6 +13,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   const [stageSizes, setStageSizes] = useState({});
   const [selectedShape, setSelectedShape] = useState(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   const copiedShapeRef = useRef(null);
 
@@ -119,10 +120,17 @@ export default function PicturesSetup({ images, onNext, onBack }) {
 
   /* ===== ADD SHAPES ===== */
   function addShape(type) {
+    const current = areas[activeIndex] || [];
+
+    if (current.length >= 4) {
+      setShowLimitModal(true);
+      return;
+    }
+
     setAreas((prev) => ({
       ...prev,
       [activeIndex]: [
-        ...(prev[activeIndex] || []),
+        ...current,
         {
           id: crypto.randomUUID(),
           type,
@@ -138,10 +146,17 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   }
 
   function addRemovalShape() {
+    const current = removalAreas[activeIndex] || [];
+
+    if (current.length >= 4) {
+      setShowLimitModal(true);
+      return;
+    }
+
     setRemovalAreas((prev) => ({
       ...prev,
       [activeIndex]: [
-        ...(prev[activeIndex] || []),
+        ...current,
         {
           id: crypto.randomUUID(),
           type: "removal",
@@ -537,8 +552,8 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         });
 
         const finalMask = maskCanvas.toDataURL("image/png");
-        const finalPrepared = preparedCanvas.toDataURL("image/png");
-        const finalComposite = compositeCanvas.toDataURL("image/png");
+        const finalPrepared = preparedCanvas.toDataURL("image/jpeg", 0.6);
+        const finalComposite = compositeCanvas.toDataURL("image/jpeg", 0.6);
 
         /* ===== CREATE INDIVIDUAL SIGNS ===== */
         shapes.forEach((s, shapeIndex) => {
@@ -587,7 +602,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
             shapeId: s.id,     // ✅ ESTÁVEL
             label: existing?.label || `Sign ${shapeIndex + 1}`,
 
-            preview: singleCanvas.toDataURL("image/png"),
+            preview: singleCanvas.toDataURL("image/jpeg", 0.6),
             compositePreview: finalComposite,
 
             baseImage: imgObj.preview,
@@ -851,6 +866,22 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         onClose={backConfirm.cancel}
         onConfirm={backConfirm.confirm}
       />
+
+      {showLimitModal && (
+        <div className="modal-overlay" onClick={() => setShowLimitModal(false)}>
+          <div className="modal-card apple" onClick={(e) => e.stopPropagation()}>
+            <h3>Limit reached</h3>
+            <p>Maximum of 4 shapes and 4 removal areas per image.</p>
+
+            <button
+              className="primary"
+              onClick={() => setShowLimitModal(false)}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

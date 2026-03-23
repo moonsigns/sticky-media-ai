@@ -6,13 +6,29 @@ import "./PicturesUpload.css";
 
 export default function PicturesUpload({ images, setImages, onNext }) {
   const [showInstructions, setShowInstructions] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   function handleFiles(selectedFiles) {
     setImages((prev) => {
-      const remainingSlots = 4 - prev.length;
+      const remainingSlots = 2 - prev.length;
+
+      if (selectedFiles.length > remainingSlots) {
+        setModalMessage("Only 2 images are allowed in this version.");
+        setShowLimitModal(true);
+      }
+
       if (remainingSlots <= 0) return prev;
 
       const newFiles = Array.from(selectedFiles)
+        .filter(file => {
+          const valid = ["image/png", "image/jpeg"].includes(file.type);
+          if (!valid) {
+            setModalMessage("Only PNG and JPG images are allowed.");
+            setShowLimitModal(true);
+          }
+          return valid;
+        })
         .slice(0, remainingSlots)
         .map((file) => ({
           file,
@@ -37,7 +53,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
     handleFiles(e.dataTransfer.files);
   }
 
-  function resizeImage(file, maxWidth = 900, quality = 0.7) {
+  function resizeImage(file, maxWidth = 700, quality = 0.6) {
     return new Promise((resolve) => {
       const img = new window.Image(); // ✅ IMPORTANT FIX
       img.src = URL.createObjectURL(file);
@@ -99,7 +115,8 @@ export default function PicturesUpload({ images, setImages, onNext }) {
                 const resizedFile = await resizeImage(img.file);
                 return {
                   ...img,
-                  file: resizedFile
+                  file: resizedFile,
+                  preview: URL.createObjectURL(resizedFile)
                 };
               })
             );
@@ -114,7 +131,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
 
       <h2>Upload Pictures</h2>
       <p className="subtitle">
-        Upload photos of where the signs will be installed.
+        Upload photos of <strong>where the signs will be installed</strong>.
       </p>
 
       {/* PREVIEWS */}
@@ -133,7 +150,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
           ))}
         </div>
       )}
-      
+
       {/* UPLOAD AREA */}
       <div
         className="upload-box"
@@ -143,13 +160,15 @@ export default function PicturesUpload({ images, setImages, onNext }) {
         <input
           type="file"
           multiple
-          accept="image/*"
+          // accept="image/*"
+          accept="image/png, image/jpeg"
           onChange={(e) => handleFiles(e.target.files)}
         />
 
         <div className="upload-content">
           <span className="upload-icon">＋</span>
           <p>Drag & drop your images here</p>
+          <p style={{fontSize:"13px", marginTop:"-5px", color:"#999", }}>Pictures of the signs location</p>
           <span className="or">or</span>
           <button className="select-btn">Select from your device</button>
         </div>
@@ -185,6 +204,23 @@ export default function PicturesUpload({ images, setImages, onNext }) {
           </div>
         </div>
       )}
+
+      {showLimitModal && (
+        <div className="modal-overlay" onClick={() => setShowLimitModal(false)}>
+          <div className="modal-card apple" onClick={(e) => e.stopPropagation()}>
+            <h3>Alert</h3>
+            <p>{modalMessage}</p>
+
+            <button
+              className="primary"
+              onClick={() => setShowLimitModal(false)}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
