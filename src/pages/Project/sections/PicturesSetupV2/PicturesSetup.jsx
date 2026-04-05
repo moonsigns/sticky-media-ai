@@ -117,6 +117,8 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   }, [selectedShape]);
 
 
+  // ONLY showing the important fixed parts
+
   /* ===== ADD SHAPES ===== */
   function addShape(type) {
     const size = 105;
@@ -133,11 +135,12 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           w: size,
           h: type === "circle" ? size : 100,
           rotation: 0,
-          previewYOffset: 0
+          previewYOffset: 1.5
         }
       ]
     }));
   }
+
   function addRemovalShape() {
     setRemovalAreas((prev) => ({
       ...prev,
@@ -150,8 +153,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           y: 120,
           w: 95,
           h: 80,
-          rotation: 0,
-          previewYOffset: 0
+          rotation: 0
         }
       ]
     }));
@@ -428,26 +430,18 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         const shapes = areas[imageIndex] || [];
 
         /* ===== DRAW SHAPES ===== */
-        shapes.forEach((s, shapeIndex) => {
-          const yOffset = (s.previewYOffset || 0) * scaleY;
-
+        shapes.forEach((s) => {
           const cx = (s.x + s.w / 2) * scaleX;
-          const cy = (s.y + s.h / 2) * scaleY - yOffset;
+          const cy = (s.y + s.h / 2) * scaleY;
           const rw = s.w * scaleX;
           const rh = s.h * scaleY;
 
-          /* --- COMPOSITE (visual only) --- */
           compositeCtx.save();
           compositeCtx.translate(cx, cy);
           compositeCtx.rotate((s.rotation * Math.PI) / 180);
-          compositeCtx.fillStyle = "rgba(220,0,0,0.25)";
-          compositeCtx.strokeStyle = "#d00";
-          compositeCtx.lineWidth = 2;
           compositeCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
-          compositeCtx.strokeRect(-rw / 2, -rh / 2, rw, rh);
           compositeCtx.restore();
 
-          /* --- MASK (WHITE = editable) --- */
           maskCtx.save();
           maskCtx.translate(cx, cy);
           maskCtx.rotate((s.rotation * Math.PI) / 180);
@@ -456,7 +450,6 @@ export default function PicturesSetup({ images, onNext, onBack }) {
           if (s.type === "circle") {
             maskCtx.beginPath();
             maskCtx.arc(0, 0, Math.min(rw, rh) / 2, 0, Math.PI * 2);
-            maskCtx.closePath();
             maskCtx.fill();
           } else {
             maskCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
@@ -499,19 +492,23 @@ export default function PicturesSetup({ images, onNext, onBack }) {
             label: existing?.label || `Sign ${shapeIndex + 1}`,
 
             baseImage: baseOnly,
-            compositePreview: finalComposite, 
+            compositePreview: finalComposite,
             maskImage: finalMask,
 
             shapeImageWidth: img.width,
             shapeImageHeight: img.height,
 
+            stageWidth: stageSize.width,
+            stageHeight: stageSize.height,
+
             shape: {
-              x: s.x * scaleX,
-              y: s.y * scaleY,
-              w: s.w * scaleX,
-              h: s.h * scaleY,
-              rotation: s.rotation || 0,
-              type: s.type
+              ...s,
+              type: s.type,
+              x: s.x,
+              y: s.y,
+              w: s.w,
+              h: s.h,
+              rotation: s.rotation || 0
             },
 
             signType: existing?.signType ?? null,

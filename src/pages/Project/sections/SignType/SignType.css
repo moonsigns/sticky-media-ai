@@ -433,7 +433,6 @@
 .shape-overlay.circle {
   border-radius: 50%;
   border: 2px solid #d00;
-  transform: translateY(-10px);
 }
 
 

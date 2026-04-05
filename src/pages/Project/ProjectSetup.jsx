@@ -4,7 +4,7 @@ import PicturesSetup from "./sections/PicturesSetupV2/PicturesSetup";
 import SignType from "./sections/SignType/SignType";
 import ProjectReview from "./sections/ProjectReviewV2/ProjectReview";
 import AiProjectProcessing from "./sections/AiProjectProcessing/AiProjectProcessing";
-import PicturesSetupPhone from "./sections/PicturesSetup/PicturesSetupPhone";
+import PicturesSetupPhone from "./sections/PicturesSetupV2/PicturesSetupPhone";
 
 import useIsMobile from "../../hooks/useIsMobile";
 

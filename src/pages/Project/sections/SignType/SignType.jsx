@@ -282,9 +282,7 @@ export default function SignType({ signs = [], onNext, onBack }) {
                   onLoad={() => forceRender(v => v + 1)}
                 />
 
-                {imageRefs.current[index] && (() => {
-                  // const imageWidth = imageRefs.current[index].offsetWidth;
-                  // const imageHeight = imageRefs.current[index].offsetHeight;
+                {imageRefs.current[index] && sign.shape && (() => {
 
                   const rect = imageRefs.current[index].getBoundingClientRect();
                   const imageWidth = rect.width;
@@ -293,26 +291,16 @@ export default function SignType({ signs = [], onNext, onBack }) {
                   const scaleX = imageWidth / sign.shapeImageWidth;
                   const scaleY = imageHeight / sign.shapeImageHeight;
 
-                  const isCircle = sign.shape?.type === "circle";
-
-                  const width = sign.shape.w * scaleX;
-                  const height = sign.shape.h * scaleY;
-
-                  console.log("SIGN BASE IMAGE CHECK:", {
-                    index,
-                    isBase64: sign.baseImage?.startsWith("data:image"),
-                    preview: sign.baseImage?.slice(0, 30)
-                  });
-
+                  const isCircle = sign.shape.type === "circle";
                   return (
                     <div
                       className={`shape-overlay ${isCircle ? "circle" : "square"}`}
                       style={{
-                        left: `${sign.shape.x * scaleX}px`,
-                        top: `${sign.shape.y * scaleY}px`,
-                        width: `${sign.shape.w * scaleX}px`,
-                        height: `${sign.shape.h * scaleY}px`,
-                        transform: `${isCircle ? "translateY(-8px) " : "translateY(-4px)"}rotate(${sign.shape.rotation}deg)`,
+                        left: `${(sign.shape.x / sign.stageWidth) * imageWidth}px`,
+                        top: `${(sign.shape.y / sign.stageHeight) * imageHeight - (sign.shape.h * imageHeight / sign.stageHeight) / 2}px`,
+                        width: `${(sign.shape.w / sign.stageWidth) * imageWidth}px`,
+                        height: `${(sign.shape.h / sign.stageHeight) * imageHeight}px`,
+                        transform: `rotate(${sign.shape.rotation}deg)`,
                         transformOrigin: "top left"
                       }}
                     />
