@@ -65,7 +65,7 @@ const INSTRUCTION_SNIPPETS = {
       'Illuminated light box with flat translucent acrylic face (with graphics) and internal LED modules. Cabinet is 6in thick.',
 
     push:
-      'Push-through sign with 6in thich aluminum cabinet. Only the 3D acrylic elements are face-lit. No wall light propagation. Similar to a light box, but the aluminum face is not illuminated.',
+      'Push-through sign with 3in thich aluminum cabinet. Only the 3D acrylic elements (graphics) are face-lit. No wall light propagation.',
 
     blade:
       'A blade sign is a rigid sign mounted perpendicular to a wall, projecting outward so it is visible from both directions along a sidewalk. It is double-sided, supported by brackets or a frame, and used for high visibility to pedestrian traffic.',
@@ -112,6 +112,7 @@ const INSTRUCTION_SNIPPETS = {
 export default function SignType({ signs = [], onNext, onBack }) {
   const imageRefs = useRef({});
   const [, forceRender] = useState(0);
+  const [modalMessage, setModalMessage] = useState("");
   const [data, setData] = useState(
     signs.map((s) => ({
       ...s,
@@ -282,26 +283,151 @@ export default function SignType({ signs = [], onNext, onBack }) {
                   onLoad={() => forceRender(v => v + 1)}
                 />
 
-                {imageRefs.current[index] && sign.shape && (() => {
+                {/* {imageRefs.current[index] && sign.shape && (() => {
+                  const imageWidth = imageRefs.current[index].offsetWidth;
+                  const imageHeight = imageRefs.current[index].offsetHeight;
 
-                  const rect = imageRefs.current[index].getBoundingClientRect();
-                  const imageWidth = rect.width;
-                  const imageHeight = rect.height;
+                  const previewShape = {
+                    x: sign.shape.x / sign.stageWidth,
+                    y: sign.shape.y / sign.stageHeight,
+                    w: sign.shape.w / sign.stageWidth,
+                    h: sign.shape.h / sign.stageHeight,
+                    type: sign.shape.type,
+                    rotation: sign.shape.rotation || 0
+                  };
+
+                  const isCircle = previewShape.type === "circle";
+
+                  return (
+                    <div
+                      className={`shape-overlay ${isCircle ? "circle" : "square"}`}
+                      style={{
+                        left: `${Math.round(previewShape.x * imageWidth)}px`,
+                        top: `${Math.round(previewShape.y * imageHeight)}px`,
+                        width: `${Math.round(previewShape.w * imageWidth)}px`,
+                        height: `${Math.round(previewShape.h * imageHeight)}px`,
+                        transform: `rotate(${previewShape.rotation}deg)`,
+                        transformOrigin: "center center"
+                      }}
+                    />
+                  );
+                })()} */}
+
+                {/* {imageRefs.current[index] && sign.shape && (() => {
+
+                  const imageWidth = imageRefs.current[index].offsetWidth;
+                  const imageHeight = imageRefs.current[index].offsetHeight;
 
                   const scaleX = imageWidth / sign.shapeImageWidth;
                   const scaleY = imageHeight / sign.shapeImageHeight;
 
                   const isCircle = sign.shape.type === "circle";
+
+                  const shrink = 0.7;
+
+                  const width = sign.shape.w * scaleX * shrink;
+                  const height = sign.shape.h * scaleY * shrink;
+
+                  // X
+                  const centerX = sign.shapeImageWidth / 2;
+                  const distanceFromCenter =
+                    Math.abs(sign.shape.x - centerX) / centerX;
+
+                  const offsetX =
+                    (100 * scaleX) +
+                    (distanceFromCenter * 20);
+
+                  // Y
+                  const progress =
+                    Math.max(
+                      0,
+                      (sign.shape.y / sign.shapeImageHeight) - 0.5
+                    ) / 0.5;
+                  const offsetY =
+                    (25 * scaleY) +
+                    (progress * 50);
+
+                  const left =
+                    sign.shape.x * scaleX -
+                    offsetX +
+                    ((sign.shape.w * scaleX) - width) / 2;
+
+                  const top =
+                    sign.shape.y * scaleY -
+                    offsetY +
+                    ((sign.shape.h * scaleY) - height) / 2;
+
+
                   return (
                     <div
                       className={`shape-overlay ${isCircle ? "circle" : "square"}`}
                       style={{
-                        left: `${(sign.shape.x / sign.stageWidth) * imageWidth}px`,
-                        top: `${(sign.shape.y / sign.stageHeight) * imageHeight - (sign.shape.h * imageHeight / sign.stageHeight) / 2}px`,
-                        width: `${(sign.shape.w / sign.stageWidth) * imageWidth}px`,
-                        height: `${(sign.shape.h / sign.stageHeight) * imageHeight}px`,
+                        left: `${Math.round(left)}px`,
+                        top: `${Math.round(top)}px`,
+                        width: `${Math.round(width)}px`,
+                        height: `${Math.round(height)}px`,
                         transform: `rotate(${sign.shape.rotation}deg)`,
-                        transformOrigin: "top left"
+                        transformOrigin: "center center"
+                      }}
+                    />
+                  );
+                })()} */}
+
+                {imageRefs.current[index] && sign.shape && (() => {
+
+                  const imageWidth = imageRefs.current[index].offsetWidth;
+                  const imageHeight = imageRefs.current[index].offsetHeight;
+
+                  const scaleX = imageWidth / sign.stageWidth;
+                  const scaleY = imageHeight / sign.stageHeight;
+
+                  const isCircle = sign.shape.type === "circle";
+
+                  const shrink = 1;
+
+                  const width = sign.shape.w * scaleX * shrink;
+                  const height = sign.shape.h * scaleY * shrink;
+
+                  // X
+                  const centerX = sign.stageWidth / 2;
+                  const distanceFromCenter =
+                    Math.abs(sign.shape.x - centerX) / centerX;
+
+                  const offsetX =
+                    (1 * scaleX) +
+                    (distanceFromCenter * 1 * scaleX);
+
+                  // Y
+                  const progress =
+                    Math.max(
+                      0,
+                      (sign.shape.y / sign.stageHeight) - 0.5
+                    ) / 0.5;
+
+                  const offsetY =
+                    (1 * scaleY) +
+                    (progress * 1 * scaleY);
+
+                  const left =
+                    sign.shape.x * scaleX -
+                    offsetX +
+                    ((sign.shape.w * scaleX) - width) / 2;
+
+                  const top =
+                    sign.shape.y * scaleY -
+                    offsetY +
+                    ((sign.shape.h * scaleY) - height) / 2;
+
+                  return (
+                    <div
+                      className={`shape-overlay ${isCircle ? "circle" : "square"}`}
+                      style={{
+                        left: `${Math.round(left)}px`,
+                        top: `${Math.round(top)}px`,
+                        width: `${Math.round(width)}px`,
+                        height: `${Math.round(height)}px`,
+                        transform: `rotate(${sign.shape.rotation}deg)`,
+                        transformOrigin: "center center"
                       }}
                     />
                   );
@@ -381,7 +507,19 @@ export default function SignType({ signs = [], onNext, onBack }) {
                           onClick={() => {
                             const prevType = sign.signType;
 
-                            updateSign(index, { signType: item.id });
+                            updateSign(index, {
+                              signType: item.id,
+                              illuminated: cat.id === "printed" ? false : true
+                            });
+
+                            removeInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
+                            removeInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
+
+                            if (cat.id === "printed") {
+                              appendInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
+                            } else {
+                              appendInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
+                            }
 
                             if (prevType && prevType !== item.id) {
                               removeInstruction(
@@ -495,7 +633,12 @@ export default function SignType({ signs = [], onNext, onBack }) {
                     if (!file) return;
 
                     if (!["image/png", "image/jpeg"].includes(file.type)) {
-                      alert("Only PNG and JPG logos are allowed.");
+                      setModalMessage("Only PNG and JPG logo files are allowed.");
+                      return;
+                    }
+
+                    if (file.size > 2 * 1024 * 1024) {
+                      setModalMessage("Logo file is too large (maximum size is 2MB). Try uploading a screenshot instead.");
                       return;
                     }
 
@@ -549,6 +692,14 @@ export default function SignType({ signs = [], onNext, onBack }) {
         message="Are you sure you want to go back? Some actions may not have been saved."
         onClose={backConfirm.cancel}
         onConfirm={backConfirm.confirm}
+      />
+
+      <Alert
+        open={!!modalMessage}
+        title="Logo upload"
+        message={modalMessage}
+        onClose={() => setModalMessage("")}
+        onConfirm={() => setModalMessage("")}
       />
 
     </div>

@@ -11,10 +11,11 @@ export default function PicturesUpload({ images, setImages, onNext }) {
 
   function handleFiles(selectedFiles) {
     setImages((prev) => {
-      const remainingSlots = 2 - prev.length;
+      const remainingSlots = 1 - prev.length;
 
       if (selectedFiles.length > remainingSlots) {
-        setModalMessage("Only 2 images are allowed in this version.");
+        // setModalMessage("Only 2 images are allowed in this version.");
+        setModalMessage("Only 1 image is allowed in this beta version.");
         setShowLimitModal(true);
       }
 
@@ -26,6 +27,12 @@ export default function PicturesUpload({ images, setImages, onNext }) {
           if (!valid) {
             setModalMessage("Only PNG and JPG images are allowed.");
             setShowLimitModal(true);
+            return false;
+          }
+          if (file.size > 4 * 1024 * 1024) {
+            setModalMessage("Image is too large (maximum size is 4MB). Try uploading a screenshot instead.");
+            setShowLimitModal(true);
+            return false;
           }
           return valid;
         })
@@ -131,7 +138,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
 
       <h2>Upload Pictures</h2>
       <p className="subtitle">
-        Upload photos of <strong>where the signs will be installed</strong>.
+        Upload a photo of <strong>where the signs will be installed</strong>.
       </p>
 
       {/* PREVIEWS */}
@@ -159,7 +166,7 @@ export default function PicturesUpload({ images, setImages, onNext }) {
       >
         <input
           type="file"
-          multiple
+          // multiple
           // accept="image/*"
           accept="image/png, image/jpeg"
           onChange={(e) => handleFiles(e.target.files)}
@@ -167,8 +174,8 @@ export default function PicturesUpload({ images, setImages, onNext }) {
 
         <div className="upload-content">
           <span className="upload-icon">＋</span>
-          <p>Drag & drop your images here</p>
-          <p style={{fontSize:"13px", marginTop:"-5px", color:"#999", }}>Pictures of the signs location</p>
+          <p>Drag & drop your image here</p>
+          <p style={{ fontSize: "13px", marginTop: "-5px", color: "#999", }}>Picture of the signs location</p>
           <span className="or">or</span>
           <button className="select-btn">Select from your device</button>
         </div>

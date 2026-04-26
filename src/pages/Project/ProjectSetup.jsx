@@ -66,6 +66,7 @@ export default function ProjectSetup({ onGenerate }) {
                     <PicturesSetupPhone
                         images={images}
                         signs={signs}
+                        savedRemovalAreas={removalAreas}
                         onBack={() => updateStep(STEPS.UPLOAD)}
                         onNext={(generatedSigns, generatedRemovals) => {
                             setSigns(generatedSigns);
@@ -77,6 +78,7 @@ export default function ProjectSetup({ onGenerate }) {
                     <PicturesSetup
                         images={images}
                         signs={signs}
+                        savedRemovalAreas={removalAreas}
                         onBack={() => updateStep(STEPS.UPLOAD)}
                         onNext={(generatedSigns, generatedRemovals) => {
                             setSigns(generatedSigns);

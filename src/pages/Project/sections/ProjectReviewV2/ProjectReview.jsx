@@ -124,9 +124,16 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
         const removals = removalAreas?.[imgGroup.imageIndex] || [];
 
         removals.forEach((r) => {
-          const { x, y, w, h, rotation = 0 } = r;
+          const scaleX = canvas.width / (imgGroup.signs[0]?.stageWidth || canvas.width);
+          const scaleY = canvas.height / (imgGroup.signs[0]?.stageHeight || canvas.height);
 
-          const SCALE = 1.05;
+          const x = r.x * scaleX;
+          const y = r.y * scaleY - 10;
+          const w = r.w * scaleX;
+          const h = r.h * scaleY;
+          const rotation = r.rotation || 0;
+
+          const SCALE = 1.08;
           const drawW = w * SCALE;
           const drawH = h * SCALE;
 
@@ -149,10 +156,11 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
 
           // centered label (replacement for <span>Removal area</span>)
           ctx.fillStyle = "#fff";
-          ctx.font = `bold ${Math.max(16, drawH * 0.18)}px system-ui`;
+          ctx.font = `bold ${Math.max(13, drawH * 0.11)}px system-ui`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText("Removal area", 0, 0);
+          ctx.fillText("Removal", 0, -8);
+          ctx.fillText("Area", 0, 12);
 
           ctx.restore();
         });
@@ -166,7 +174,16 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
             logo.src = s.logo.base64;
 
             logo.onload = () => {
-              const { x, y, w, h, rotation = 0 } = s.shape;
+              // const { x, y, w, h, rotation = 0 } = s.shape;
+
+              const scaleX = canvas.width / s.stageWidth;
+              const scaleY = canvas.height / s.stageHeight;
+
+              const x = s.shape.x * scaleX;
+              const y = s.shape.y * scaleY;
+              const w = s.shape.w * scaleX;
+              const h = s.shape.h * scaleY;
+              const rotation = s.shape.rotation || 0;
 
               // const scaleX = canvas.width / s.shapeImageWidth;
               // const scaleY = canvas.height / s.shapeImageHeight;
@@ -175,10 +192,7 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
               const baseH = h;
 
               const centerX = x + w / 2;
-              const centerY =
-                s.shape.type === "circle"
-                  ? y + h / 2 - 18
-                  : y + h / 2 - 18;
+              const centerY = y + h / 2;
 
               ctx.save();
               ctx.translate(centerX, centerY);

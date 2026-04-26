@@ -4,7 +4,7 @@ import Alert from "../../../../components/Alert/Alert";
 import useBackConfirm from "../../../../hooks/useBackConfirm";
 import "./PicturesSetup.css";
 
-export default function PicturesSetup({ images, onNext, onBack }) {
+export default function PicturesSetup({ images, signs = [], savedRemovalAreas = {}, onNext, onBack }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [areas, setAreas] = useState({});
   const [removalAreas, setRemovalAreas] = useState({});
@@ -13,6 +13,20 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   const [stageSizes, setStageSizes] = useState({});
   const [selectedShape, setSelectedShape] = useState(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const [modalError, setModalError] = useState({
+    open: false,
+    title: "",
+    message: ""
+  });
+
+  const exportTimeoutRef = useRef(null);
+
+  const isStageReady =
+    stageSizes[activeIndex]?.width > 0 &&
+    stageSizes[activeIndex]?.height > 0;
 
   const copiedShapeRef = useRef(null);
 
@@ -24,6 +38,40 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   }, []);
 
   useEffect(() => {
+    if (savedRemovalAreas && Object.keys(savedRemovalAreas).length > 0) {
+      setRemovalAreas(savedRemovalAreas);
+    }
+  }, [savedRemovalAreas]);
+
+  useEffect(() => {
+    if (!signs.length) return;
+
+    const restoredAreas = {};
+
+    signs.forEach((sign) => {
+      if (!sign.shape) return;
+
+      const imageIndex = sign.imageIndex || 0;
+
+      if (!restoredAreas[imageIndex]) {
+        restoredAreas[imageIndex] = [];
+      }
+
+      restoredAreas[imageIndex].push({
+        id: sign.shapeId || sign.id,
+        type: sign.shape.type || "square",
+        x: sign.shape.x,
+        y: sign.shape.y,
+        w: sign.shape.w,
+        h: sign.shape.h,
+        rotation: sign.shape.rotation || 0
+      });
+    });
+
+    setAreas(restoredAreas);
+  }, [signs]);
+
+  useEffect(() => {
     if (activeIndex >= images.length) {
       setActiveIndex(0);
     }
@@ -32,7 +80,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   /* ===== MEASURE STAGE IMAGE (SAFE) ===== */
   useEffect(() => {
     const el = stageImageRef.current;
-    if (!el) return;
+    if (!el || !el.offsetWidth || !el.offsetHeight) return;
 
     setStageSizes((prev) => {
       const prevSize = prev[activeIndex];
@@ -123,6 +171,15 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   function addShape(type) {
     const size = 105;
 
+    if ((areas[activeIndex] || []).length >= 4) {
+      setModalError({
+        open: true,
+        title: "Limit reached",
+        message: "You can add up to 4 sign areas per picture."
+      });
+      return;
+    }
+
     setAreas((prev) => ({
       ...prev,
       [activeIndex]: [
@@ -142,6 +199,15 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   }
 
   function addRemovalShape() {
+    if ((removalAreas[activeIndex] || []).length >= 4) {
+      setModalError({
+        open: true,
+        title: "Limit reached",
+        message: "You can add up to 4 removal areas per picture."
+      });
+      return;
+    }
+
     setRemovalAreas((prev) => ({
       ...prev,
       [activeIndex]: [
@@ -160,18 +226,62 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   }
 
   /* ===== DRAG ===== */
+  // function startDrag(e, shapeId) {
+  //   if (resizing || rotating) return;
+
+  //   let lastX = e.clientX;
+  //   let lastY = e.clientY;
+
+  //   function move(ev) {
+  //     const dx = ev.clientX - lastX;
+  //     const dy = ev.clientY - lastY;
+
+  //     lastX = ev.clientX;
+  //     lastY = ev.clientY;
+
+  //     setAreas(prev => {
+  //       const list = prev[activeIndex] || [];
+  //       const idx = list.findIndex(s => s.id === shapeId);
+  //       if (idx === -1) return prev;
+
+  //       const updated = [...list];
+  //       updated[idx] = {
+  //         ...updated[idx],
+  //         x: updated[idx].x + dx,
+  //         y: updated[idx].y + dy
+  //       };
+
+  //       return { ...prev, [activeIndex]: updated };
+  //     });
+  //   }
+
+  //   function up() {
+  //     window.removeEventListener("mousemove", move);
+  //     window.removeEventListener("mouseup", up);
+  //   }
+
+  //   window.addEventListener("mousemove", move);
+  //   window.addEventListener("mouseup", up);
+  // }
+
   function startDrag(e, shapeId) {
     if (resizing || rotating) return;
 
-    let lastX = e.clientX;
-    let lastY = e.clientY;
+    const wrapper = stageImageRef.current.parentElement;
+    const rect = wrapper.getBoundingClientRect();
+
+    let lastX = e.clientX - rect.left;
+    let lastY = e.clientY - rect.top;
 
     function move(ev) {
-      const dx = ev.clientX - lastX;
-      const dy = ev.clientY - lastY;
+      const currentX = ev.clientX - rect.left;
+      const currentY = ev.clientY - rect.top;
 
-      lastX = ev.clientX;
-      lastY = ev.clientY;
+      const dx = currentX - lastX;
+      const dy = currentY - lastY;
+
+      lastX = currentX;
+      lastY = currentY;
 
       setAreas(prev => {
         const list = prev[activeIndex] || [];
@@ -179,6 +289,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         if (idx === -1) return prev;
 
         const updated = [...list];
+
         updated[idx] = {
           ...updated[idx],
           x: updated[idx].x + dx,
@@ -503,13 +614,14 @@ export default function PicturesSetup({ images, onNext, onBack }) {
 
             shape: {
               ...s,
-              type: s.type,
               x: s.x,
               y: s.y,
               w: s.w,
               h: s.h,
+              type: s.type,
               rotation: s.rotation || 0
             },
+
 
             signType: existing?.signType ?? null,
             logo: existing?.logo ?? null,
@@ -524,16 +636,17 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         });
 
         /* ===== SCALE REMOVAL AREAS ===== */
-        const scaledRemovals = (removalAreas[imageIndex] || []).map((r) => ({
-          ...r,
-          x: r.x * scaleX,
-          y: r.y * scaleY,
-          w: r.w * scaleX,
-          h: r.h * scaleY,
-          rotation: r.rotation || 0
-        }));
+        // const scaledRemovals = (removalAreas[imageIndex] || []).map((r) => ({
+        //   ...r,
+        //   x: r.x * scaleX,
+        //   y: r.y * scaleY,
+        //   w: r.w * scaleX,
+        //   h: r.h * scaleY,
+        //   rotation: r.rotation || 0
+        // }));
 
-        allRemovals[imageIndex] = scaledRemovals;
+        // allRemovals[imageIndex] = scaledRemovals;
+        allRemovals[imageIndex] = removalAreas[imageIndex] || [];
 
         processedImages++;
         if (processedImages === images.length) {
@@ -544,19 +657,57 @@ export default function PicturesSetup({ images, onNext, onBack }) {
   }
 
   function handleNext() {
+    if (isExporting) return;
+
+    const imagesWithoutShapes = images
+      .map((_, index) => index)
+      .filter((index) => !(areas[index] || []).length);
+
+    if (imagesWithoutShapes.length > 0) {
+      setModalError({
+        open: true,
+        title: "Missing sign areas",
+        message: "Please add at least one sign area to every picture before continuing."
+      });
+      return;
+    }
+
+    setIsExporting(true);
+
+    exportTimeoutRef.current = setTimeout(() => {
+      setIsExporting(false);
+      setModalError({
+        open: true,
+        title: "Processing timeout",
+        message: "Preparing your signs is taking too long. Please try again."
+      });
+    }, 25000);
+
     exportAllImages((signs, removals) => {
+      clearTimeout(exportTimeoutRef.current);
+      setIsExporting(false);
       onNext(signs, removals);
     });
   }
 
   return (
     <div className="pictures-setup">
+
+      {isExporting && (
+        <div className="apple-loading-overlay">
+          <div className="apple-loading-card">
+            <div className="apple-spinner" />
+            <p>Preparing your signs...</p>
+          </div>
+        </div>
+      )}
+
       <div className="actions">
         <button className="secondary" onClick={backConfirm.askBack}>
           <ArrowLeft size={12} /> Back
         </button>
-        <button className="primary" onClick={handleNext}>
-          Next <ArrowRight size={12} />
+        <button className="primary" onClick={handleNext} disabled={!isStageReady || isExporting}>
+          {isExporting ? "Loading..." : "Next"} <ArrowRight size={12} />
         </button>
       </div>
 
@@ -640,12 +791,69 @@ export default function PicturesSetup({ images, onNext, onBack }) {
               alt=""
               className="stage-image"
               draggable={false}
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                if (!img) return;
+
+                setStageSizes((prev) => ({
+                  ...prev,
+                  [activeIndex]: {
+                    width: img.offsetWidth,
+                    height: img.offsetHeight
+                  }
+                }));
+              }}
             />
           )}
+
           <div className="stage-overlay" />
+
+          {(areas[activeIndex] || []).map((s, i) => (
+            <div
+              key={s.id}
+              className={`area-shape ${s.type}`}
+              style={{
+                left: s.x,
+                top: s.y,
+                width: s.w,
+                height: s.h,
+                transform: `rotate(${s.rotation}deg)`,
+                borderRadius: s.type === "circle" ? "50%" : "0"
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                setSelectedShape({
+                  imageIndex: activeIndex,
+                  shapeId: s.id,
+                  type: "area"
+                });
+                startDrag(e, s.id);
+              }}
+            >
+              <div className="shape-label">{i + 1}</div>
+
+              <button
+                className="remove-shape"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => removeShape(i)}
+              >
+                ×
+              </button>
+
+              <div
+                className="resize-handle"
+                onMouseDown={(e) => startResize(e, i)}
+              />
+
+              <div
+                className="rotate-handle"
+                onMouseDown={(e) => startRotate(e, i)}
+              />
+            </div>
+          ))}
         </div>
 
-        {(areas[activeIndex] || []).map((s, i) => (
+        {/* {(areas[activeIndex] || []).map((s, i) => (
           <div
             key={s.id}
             className={`area-shape ${s.type}`}
@@ -691,7 +899,7 @@ export default function PicturesSetup({ images, onNext, onBack }) {
               onMouseDown={(e) => startRotate(e, i)}
             />
           </div>
-        ))}
+        ))} */}
 
         {(removalAreas[activeIndex] || []).map((s, i) => (
           <div
@@ -747,8 +955,8 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         <button className="secondary" onClick={backConfirm.askBack}>
           <ArrowLeft size={12} /> Back
         </button>
-        <button className="primary" onClick={handleNext}>
-          Next <ArrowRight size={12} />
+        <button className="primary" onClick={handleNext} disabled={!isStageReady || isExporting}>
+          {isExporting ? "Loading..." : "Next"} <ArrowRight size={12} />
         </button>
       </div>
 
@@ -758,6 +966,26 @@ export default function PicturesSetup({ images, onNext, onBack }) {
         message="Are you sure you want to go back? Some actions may not have been saved."
         onClose={backConfirm.cancel}
         onConfirm={backConfirm.confirm}
+      />
+
+      <Alert
+        open={modalError.open}
+        title={modalError.title}
+        message={modalError.message}
+        onClose={() =>
+          setModalError({
+            open: false,
+            title: "",
+            message: ""
+          })
+        }
+        onConfirm={() =>
+          setModalError({
+            open: false,
+            title: "",
+            message: ""
+          })
+        }
       />
     </div>
   );
