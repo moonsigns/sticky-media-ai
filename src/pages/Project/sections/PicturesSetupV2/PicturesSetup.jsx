@@ -667,7 +667,7 @@ export default function PicturesSetup({ images, signs = [], savedRemovalAreas = 
       setModalError({
         open: true,
         title: "Missing sign areas",
-        message: "Please add at least one sign area to every picture before continuing."
+        message: "Please add at least one sign area to the picture before continuing."
       });
       return;
     }

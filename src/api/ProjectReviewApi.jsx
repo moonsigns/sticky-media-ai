@@ -91,7 +91,11 @@ export function buildProjectPayload({
       label: s.label ?? null,
       signType: s.signType ?? null,
 
-      illuminated: Boolean(s.illuminated),
+      // illuminated: Boolean(s.illuminated),
+      illuminated:
+        s.illuminated === "backLit"
+          ? "backLit"
+          : Boolean(s.illuminated),
 
       width:
         s.width && Number(s.width) > 0

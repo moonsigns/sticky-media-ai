@@ -8,8 +8,8 @@
   },
   "assistant": {
     "title": "AI-assistent",
-    "welcome": "Hej! Jag är Thiagos AI-assistent. Fråga mig om hans erfarenhet och projekt.",
-    "placeholder": "Fråga något om Thiago…",
+    "welcome": "Hej! Jag är Thiagos AI-assistent.",
+    "placeholder": "Fråga något...",
     "thinking": "Tänker…",
     "error": "Något gick fel. Försök igen."
   }

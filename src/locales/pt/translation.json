@@ -1,6 +1,6 @@
 {
   "login": {
-    "title": "Bem-vindo ao Assistente de IA do Thiago",
+    "title": "Bem-vindo ao Assistente de IA",
     "emailPlaceholder": "seu@email.com",
     "continue": "Continuar →",
     "codeMessage": "Digite o código enviado para {{email}}",
@@ -8,8 +8,8 @@
   },
   "assistant": {
     "title": "Assistente de IA",
-    "welcome": "Olá! Sou o assistente de IA do Thiago. Pergunte sobre experiências, projetos ou habilidades.",
-    "placeholder": "Pergunte algo sobre o Thiago…",
+    "welcome": "Olá! Sou o assistente de IA.",
+    "placeholder": "Pergunte algo...",
     "thinking": "Pensando…",
     "error": "Ops! Algo deu errado. Tente novamente."
   }

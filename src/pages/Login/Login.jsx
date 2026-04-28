@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import "./Login.css";
 
 import Alert from "../../components/Alert/Alert";
-import { sendAccessCode, checkAccess } from "../../api/LoginApi";
+import { sendAccessCode, checkAccess } from "../../api/loginApi";
 import { saveSession, getSession } from "../../utils/authSession";
 
 export default function Login({ onLogin }) {

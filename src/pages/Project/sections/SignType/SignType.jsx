@@ -53,13 +53,14 @@ const INSTRUCTION_SNIPPETS = {
       'Custom flex neon sign, color as per logo, with uniform LED illumination and clear acrylic backing.',
 
     alumCut:
-      'Flat cut 3D aluminum letters. Non-illuminated, flush mounted or with 1/2in spacers.',
+      'Flat cut 3D aluminum letters with a clean dimensional finish. Flush mounted or installed with 1/2in spacers.',
+
 
     acrylic3D:
       '3D acrylic letters, dimensional and premium finish. Usually painted as per logo color. Flush mount or with 1/2in spacers.',
 
     pvc:
-      'PVC cut 3D letters. Flat, non-illuminated sign, flush mounted or with 1/2in spacers.',
+      'PVC cut 3D letters with a clean dimensional finish. Flush mounted or installed with 1/2in spacers.',
 
     lightbox:
       'Illuminated light box with flat translucent acrylic face (with graphics) and internal LED modules. Cabinet is 6in thick.',
@@ -74,16 +75,16 @@ const INSTRUCTION_SNIPPETS = {
       'A pylon sign is a freestanding ground-mounted sign supported by one or more vertical poles or a solid base. It is designed for long-distance visibility, typically installed near roads or entrances, and can be illuminated or non-illuminated.',
 
     film:
-      'Flat, non-illuminated vinyl / printed graphics. Not a 3D sign. Usually installed onto windows or walls.',
+      'Flat vinyl / printed graphics. Usually installed onto windows or walls.',
 
     banner:
-      'Printed banner. Flat, non-illuminated signage solution.',
+      'Printed banner signage solution.',
 
     printMat:
-      'Printed graphics mounted on ACM / aluminum panel. Flat, non-illuminated.',
+      'Printed graphics mounted on ACM / aluminum panel.',
 
     acrylicFace:
-      'Printed graphics applied to acrylic face. Flat, non-illuminated. It can be used to replace Pylon of light box faces.',
+      'Printed graphics applied to an acrylic face. It can be used to replace pylon or light box faces.',
 
     other:
       'Custom sign solution. Details to be defined.'
@@ -105,7 +106,10 @@ const INSTRUCTION_SNIPPETS = {
     'NON-ILLUMINATED SIGN.',
 
   illuminated:
-    "ILLUMINATED SIGN."
+    'FACE-ILLUMINATED SIGN.',
+
+  backLit:
+    'BACK-LIT SIGN (HALO ILLUMINATED).'
 };
 
 
@@ -258,11 +262,50 @@ export default function SignType({ signs = [], onNext, onBack }) {
     });
   }
 
+  function isValidDimension(value) {
+    return value !== "" && Number.isFinite(Number(value)) && Number(value) > 0;
+  }
+
+  function handleNext() {
+    const missing = [];
+
+    data.forEach((sign, index) => {
+      const issues = [];
+
+      if (!isValidDimension(sign.width) || !isValidDimension(sign.height)) {
+        issues.push("Dimensions (Width and Height)");
+      }
+
+      if (!sign.signType) {
+        issues.push("Type of Sign");
+      }
+
+      if (!sign.logo?.base64) {
+        issues.push("Logo / Artwork");
+      }
+
+      if (issues.length) {
+        missing.push(
+          `Sign #${index + 1}\n${issues.map((issue, i) => `${i + 1} - ${issue}`).join("\n")}`
+        );
+      }
+    });
+
+    if (missing.length) {
+      setModalMessage(
+        `Please complete the following before continuing:\n\n${missing.join("\n\n")}`
+      );
+      return;
+    }
+
+    onNext(data);
+  }
+
   return (
     <div className="sign-type">
       <div className="actions">
         <button className="secondary" onClick={backConfirm.askBack}><ArrowLeft size={12} /> Back</button>
-        <button className="primary" onClick={() => onNext(data)}>Next <ArrowRight size={12} /></button>
+        <button className="primary" onClick={handleNext}>Next <ArrowRight size={12} /></button>
       </div>
       <div className="header">
         <h2>Select sign types & upload logos</h2>
@@ -441,16 +484,33 @@ export default function SignType({ signs = [], onNext, onBack }) {
             <div className="sign-config">
               <div className="sign-header-row">
                 <h4>Sign #{index + 1}</h4>
-                <button
+                {/* <button
                   className={`ai-btn ${sign.aiMode ? "active" : ""}`}
                   onClick={() => updateSign(index, { aiMode: !sign.aiMode })}
                 >
                   ✨ Create sign with AI
-                </button>
+                </button>*/}
               </div>
 
+              <p
+                style={{
+                  color: '#8c8c8c',
+                  marginTop: '-18px',
+                  marginBottom: '18px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  letterSpacing: '0.5px',
+                  lineHeight: '1.4',
+                  paddingBottom: '8px',
+                  borderBottom: '1px solid rgba(255,255,255,0.08)'
+                }}
+              >
+                Provide Dimensions (inches): <span style={{ color: '#b3b3b3', fontWeight: '400' }}> Exact or Approximate.</span>
+              </p>
+
               {!sign.aiMode &&
-                <div className="dimensions" style={{ marginTop: '-10px', fontSize: '12px' }}>
+                <div className={`dimensions ${(!isValidDimension(sign.width) || !isValidDimension(sign.height)) ? "missing-dimensions" : ""}`} style={{ marginTop: '-10px', fontSize: '12px' }}>
+
                   <input
                     type="number"
                     placeholder="Width (in)"
@@ -463,12 +523,12 @@ export default function SignType({ signs = [], onNext, onBack }) {
                     value={sign.height}
                     onChange={(e) => setDimension(index, "height", e.target.value)}
                   />
-                  <button
+                  {/* <button
                     className={`ai-dim-btn ${sign.estimateWithAI ? "active" : ""}`}
                     onClick={() => updateSign(index, { estimateWithAI: true })}
                   >
                     <strong><ArrowRight size={12} style={{ marginBottom: "-1px" }} /></strong> Dimensions by AI
-                  </button>
+                  </button> */}
                 </div>
               }
 
@@ -486,7 +546,7 @@ export default function SignType({ signs = [], onNext, onBack }) {
 
               {!sign.aiMode &&
                 SIGN_CATEGORIES.map((cat) => (
-                  <div key={cat.id} className="category">
+                  <div key={cat.id} className={`category ${!sign.signType ? "missing-sign-type" : ""}`}>
                     <button
                       className={`category-btn ${sign.openCategory === cat.id ? "open" : ""}`}
                       onClick={() =>
@@ -507,15 +567,21 @@ export default function SignType({ signs = [], onNext, onBack }) {
                           onClick={() => {
                             const prevType = sign.signType;
 
+                            const autoNonIlluminated = ["alumCut", "acrylic3D", "pvc", "film", "banner", "printMat", "acrylicFace"];
+
+                            const nextIllumination =
+                              autoNonIlluminated.includes(item.id) ? false : true;
+
                             updateSign(index, {
                               signType: item.id,
-                              illuminated: cat.id === "printed" ? false : true
+                              illuminated: nextIllumination
                             });
 
                             removeInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
                             removeInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
+                            removeInstruction(index, INSTRUCTION_SNIPPETS.backLit);
 
-                            if (cat.id === "printed") {
+                            if (nextIllumination === false) {
                               appendInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
                             } else {
                               appendInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
@@ -545,33 +611,49 @@ export default function SignType({ signs = [], onNext, onBack }) {
               {!sign.aiMode && (
                 <div className="illumination">
                   <button
-                    className={`illum-btn ${sign.illuminated ? "active" : ""}`}
-                    onClick={() => {
-                      updateSign(index, { illuminated: true });
-
-                      removeInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
-                      appendInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
-                    }}
-                  >
-                    Illuminated
-                  </button>
-                  <button
-                    className={`illum-btn ${!sign.illuminated ? "active" : ""}`}
+                    className={`illum-btn ${sign.illuminated === false ? "active" : ""}`}
                     onClick={() => {
                       updateSign(index, { illuminated: false });
 
                       removeInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
+                      removeInstruction(index, INSTRUCTION_SNIPPETS.backLit);
                       appendInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
                     }}
                   >
                     Non-illuminated
                   </button>
 
+                  <button
+                    className={`illum-btn ${sign.illuminated === true ? "active" : ""}`}
+                    onClick={() => {
+                      updateSign(index, { illuminated: true });
+
+                      removeInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
+                      removeInstruction(index, INSTRUCTION_SNIPPETS.backLit);
+                      appendInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
+                    }}
+                  >
+                    Face-lit
+                  </button>
+
+                  <button
+                    className={`illum-btn ${sign.illuminated === "backLit" ? "active" : ""}`}
+                    onClick={() => {
+                      updateSign(index, { illuminated: "backLit" });
+
+                      removeInstruction(index, INSTRUCTION_SNIPPETS.illuminated);
+                      removeInstruction(index, INSTRUCTION_SNIPPETS.nonIlluminated);
+                      appendInstruction(index, INSTRUCTION_SNIPPETS.backLit);
+                    }}
+                  >
+                    Back-lit
+                  </button>
+
                 </div>
               )}
 
 
-              {!sign.aiMode && (
+              {/* {!sign.aiMode && (
                 <div className="details-toggle">
                   <button onClick={() => updateSign(index, { openDetails: !sign.openDetails })}>
                     Dimensions & additional setup (optional)
@@ -618,12 +700,12 @@ export default function SignType({ signs = [], onNext, onBack }) {
                     </div>
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
 
             <div className="logo-and-instructions">
               {/* Logo */}
-              <div className={`logo-dropzone ${sign.aiMode ? "disabled" : ""}`}>
+              <div className={`logo-dropzone ${sign.aiMode ? "disabled" : ""} ${!sign.logo?.base64 ? "missing-logo" : ""}`}>
                 <input
                   type="file"
                   accept="image/png, image/jpeg"
@@ -683,7 +765,7 @@ export default function SignType({ signs = [], onNext, onBack }) {
 
       <div className="actions">
         <button className="secondary" onClick={backConfirm.askBack}><ArrowLeft size={12} />Back</button>
-        <button className="primary" onClick={() => onNext(data)}>Next <ArrowRight size={12} /></button>
+        <button className="primary" onClick={handleNext}>Next <ArrowRight size={12} /></button>
       </div>
 
       <Alert
@@ -696,7 +778,7 @@ export default function SignType({ signs = [], onNext, onBack }) {
 
       <Alert
         open={!!modalMessage}
-        title="Logo upload"
+        title="Missing information"
         message={modalMessage}
         onClose={() => setModalMessage("")}
         onConfirm={() => setModalMessage("")}

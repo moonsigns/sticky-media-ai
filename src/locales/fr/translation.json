@@ -1,15 +1,15 @@
 {
   "login": {
-    "title": "Bienvenue dans l’assistant IA de Thiago",
+    "title": "Sticky Media | Ai 4 Signs",
     "emailPlaceholder": "votre@email.com",
     "continue": "Continuer →",
     "codeMessage": "Entrez le code envoyé à {{email}}",
     "codePlaceholder": "XXXXXX"
   },
   "assistant": {
-    "title": "Assistant IA",
-    "welcome": "Bonjour ! Je suis l’assistant IA de Thiago. Posez-moi vos questions sur son parcours.",
-    "placeholder": "Demandez quelque chose sur Thiago…",
+    "title": "Sticky Media | Ai 4 Signs",
+    "welcome": "Bonjour !",
+    "placeholder": "Demandez quelque chose...",
     "thinking": "Réflexion…",
     "error": "Désolé, une erreur s’est produite."
   }
