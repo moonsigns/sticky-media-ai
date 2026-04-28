@@ -19,7 +19,7 @@ export default function Header({
                         <button
                             className="assistant-back"
                             onClick={() => {
-                                window.location.href = "/ai-4signs";
+                                window.location.href = "/sticky-media-ai";
                             }}
                             aria-label="Back"
                         >
@@ -28,7 +28,7 @@ export default function Header({
                     )}
 
                     <div className="assistant-logo" onClick={() => {
-                        window.location.href = "/ai-4signs";
+                        window.location.href = "/sticky-media-ai";
                     }}>Sticky</div>
                     <h2>{t("assistant.title")}</h2>
                 </div>
