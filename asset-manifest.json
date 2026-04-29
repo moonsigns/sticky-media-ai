@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/sticky-media-ai/static/css/main.37a1e256.css",
-    "main.js": "/sticky-media-ai/static/js/main.114e69e1.js",
+    "main.js": "/sticky-media-ai/static/js/main.bb6203a2.js",
     "static/js/453.d41eade9.chunk.js": "/sticky-media-ai/static/js/453.d41eade9.chunk.js",
     "static/media/how-it-works-steps-v3.png": "/sticky-media-ai/static/media/how-it-works-steps-v3.e9b5b8db99648815cdc1.png",
     "index.html": "/sticky-media-ai/index.html",
     "main.37a1e256.css.map": "/sticky-media-ai/static/css/main.37a1e256.css.map",
-    "main.114e69e1.js.map": "/sticky-media-ai/static/js/main.114e69e1.js.map",
+    "main.bb6203a2.js.map": "/sticky-media-ai/static/js/main.bb6203a2.js.map",
     "453.d41eade9.chunk.js.map": "/sticky-media-ai/static/js/453.d41eade9.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.37a1e256.css",
-    "static/js/main.114e69e1.js"
+    "static/js/main.bb6203a2.js"
   ]
 }
