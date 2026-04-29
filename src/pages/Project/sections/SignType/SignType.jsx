@@ -24,7 +24,7 @@ const SIGN_CATEGORIES = [
       { id: "lightbox", label: "Light Box" },
       { id: "push", label: "Push-Through Sign" },
       { id: "blade", label: "Blade Sign" },
-      { id: "pylon", label: "Complete Pylon" }
+      { id: "pylon", label: "Pylon" }
     ]
   },
   {
@@ -47,47 +47,46 @@ const SIGN_CATEGORIES = [
 const INSTRUCTION_SNIPPETS = {
   signType: {
     channel:
-      'Channel letters are individual 3D dimensional letters, typically face-lit with internal LED illumination. Each letter is fabricated separately and mounted directly to the wall (or onto a backing system if specified as "Additional" on this text). The letter returns (sides) are 3.5in and can be finished in black, white, or matched to the logo color.',
+      'Channel letters - Individual fabricated 3D letters, with internal LED modules. Each letter is produced separately and mounted directly to the wall or onto an optional backing/support structure when specified. Standard returns are approximately 3.5 in, with finishes in black, white, or custom colors matching the approved artwork. Faces as per artwork/logo color.',
 
     neon:
-      'Custom flex neon sign, color as per logo, with uniform LED illumination and clear acrylic backing.',
+      'Flex neon sign - Custom LED flex neon tubing shaped to match approved artwork or lettering. Mounted onto clear acrylic backing with continuous illuminated appearance.',
 
     alumCut:
-      'Flat cut 3D aluminum letters with a clean dimensional finish. Flush mounted or installed with 1/2in spacers.',
-
+      'Aluminum letters - Individual fabricated aluminum letters or logo elements with clean dimensional appearance. Installed flush mounted or with spacers as required.',
 
     acrylic3D:
-      '3D acrylic letters, dimensional and premium finish. Usually painted as per logo color. Flush mount or with 1/2in spacers.',
+      'Acrylic letters - Individual dimensional acrylic letters or logo elements with premium finish. Painted or finished as per approved artwork colors. Flush mounted or installed with spacers.',
 
     pvc:
-      'PVC cut 3D letters with a clean dimensional finish. Flush mounted or installed with 1/2in spacers.',
+      'PVC letters - Individual dimensional PVC letters or logo elements with painted finish. Lightweight construction with clean dimensional appearance. Flush mounted or installed with spacers.',
 
     lightbox:
-      'Illuminated light box with flat translucent acrylic face (with graphics) and internal LED modules. Cabinet is 6in thick.',
+      'Light box - Illuminated cabinet sign with translucent face panel and internal LED illumination. Face graphics applied as per approved artwork.',
 
     push:
-      'Push-through sign with 3in thich aluminum cabinet. Only the 3D acrylic elements (graphics) are face-lit. No wall light propagation.',
+      'Push-through sign - Fabricated cabinet sign with solid face panel. Acrylic logo or lettering elements project through the face and illuminate internally.',
 
     blade:
-      'A blade sign is a rigid sign mounted perpendicular to a wall, projecting outward so it is visible from both directions along a sidewalk. It is double-sided, supported by brackets or a frame, and used for high visibility to pedestrian traffic.',
+      'Blade sign - Double-sided rigid sign mounted perpendicular to the wall for visibility from both directions. Supported by brackets or structural frame.',
 
     pylon:
-      'A pylon sign is a freestanding ground-mounted sign supported by one or more vertical poles or a solid base. It is designed for long-distance visibility, typically installed near roads or entrances, and can be illuminated or non-illuminated.',
+      'Pylon sign - Freestanding sign structure mounted to ground with poles, frame, or solid base. Designed for visibility from distance and roadside locations.',
 
     film:
-      'Flat vinyl / printed graphics. Usually installed onto windows or walls.',
+      'Vinyl graphics - Flat cut or printed vinyl graphics typically applied directly onto glass, walls, or smooth surfaces.',
 
     banner:
-      'Printed banner signage solution.',
+      'Banner - Printed flexible banner signage solution for temporary, promotional, or event applications.',
 
     printMat:
-      'Printed graphics mounted on ACM / aluminum panel.',
+      'Printed panel - Digitally printed graphics mounted onto ACM / aluminum composite panel for rigid flat signage.',
 
     acrylicFace:
-      'Printed graphics applied to an acrylic face. It can be used to replace pylon or light box faces.',
+      'Acrylic face - Printed graphics applied onto acrylic panel. Commonly used as replacement face for cabinet, light box, or pylon signage.',
 
     other:
-      'Custom sign solution. Details to be defined.'
+      'Custom sign solution - Final materials, construction method, and specifications to be determined.'
   },
 
   addition: {
@@ -747,7 +746,7 @@ export default function SignType({ signs = [], onNext, onBack }) {
 
               {/* Sign Instructions */}
               <div className="sign-instructions">
-                <label>Sign Instructions (optional)</label>
+                <label>Sign Instructions (SOW)</label>
                 <textarea
                   placeholder="Instructions for this sign (materials, mounting, colors, fabrication notes, etc.)"
                   value={sign.instructions || ""}

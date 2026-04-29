@@ -158,6 +158,28 @@ export default function ProjectReview({ signs = [], removalAreas = {}, onBack, o
         });
 
 
+        /* ===== SIGN AREAS (WHITE BACKGROUND BEHIND LOGOS) ===== */
+        imgGroup.signs.forEach((s) => {
+          if (!s.shape) return;
+
+          const { x, y, w, h, rotation = 0 } = s.shape;
+
+          ctx.save();
+          ctx.translate(x + w / 2, y + h / 2);
+          ctx.rotate((rotation * Math.PI) / 180);
+
+          ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+
+          if (s.shape.type === "circle") {
+            ctx.beginPath();
+            ctx.arc(0, 0, Math.min(w, h) / 2, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(-w / 2, -h / 2, w, h);
+          }
+
+          ctx.restore();
+        });
 
 
         const logoPromises = imgGroup.signs.map((s, index) => {

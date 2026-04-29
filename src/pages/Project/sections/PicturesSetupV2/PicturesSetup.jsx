@@ -579,7 +579,7 @@ export default function PicturesSetup({ images, signs = [], savedRemovalAreas = 
           maskCtx.save();
           maskCtx.translate(cx, cy);
           maskCtx.rotate((r.rotation * Math.PI) / 180);
-          maskCtx.fillStyle = "#fff";
+          maskCtx.fillStyle = "#ffff00";
           maskCtx.fillRect(-rw / 2, -rh / 2, rw, rh);
           maskCtx.restore();
         });
