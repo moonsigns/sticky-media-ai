@@ -88,6 +88,7 @@ export function buildProjectPayload({
       shapeIndex:
         Number.isFinite(s.shapeIndex) ? s.shapeIndex : 0,
 
+      dimensionsSource: "client",
       label: s.label ?? null,
       signType: s.signType ?? null,
 
